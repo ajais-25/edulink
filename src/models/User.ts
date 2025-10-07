@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface SocialLinks {
   linkedIn?: string;
@@ -22,7 +22,7 @@ export interface User extends Document {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
-  courses: string[];
+  courses: Types.ObjectId[];
 }
 
 const userSchema: Schema<User> = new Schema(
