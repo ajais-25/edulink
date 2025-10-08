@@ -18,7 +18,7 @@ export interface User extends Document {
   role: "student" | "instructor";
   profile: Profile;
   verifyCode: string;
-  verifyCodeExpiry: string;
+  verifyCodeExpiry: Date;
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -64,7 +64,7 @@ const userSchema: Schema<User> = new Schema(
       required: true,
     },
     verifyCodeExpiry: {
-      type: String,
+      type: Date,
       required: true,
     },
     isVerified: {
