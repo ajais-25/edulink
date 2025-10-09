@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       await newUser.save();
     }
 
-    sendVerificationEmail(name, email, verifyCode);
+    await sendVerificationEmail(name, email, verifyCode);
 
     return Response.json(
       {
