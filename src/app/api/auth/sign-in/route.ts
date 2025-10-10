@@ -34,7 +34,7 @@ export async function POST(request: Request) {
               "User not verified. Please verify your email by signing up",
           },
           {
-            status: 500,
+            status: 400,
           }
         );
       }
@@ -51,14 +51,14 @@ export async function POST(request: Request) {
             message: "Incorrect Password",
           },
           {
-            status: 500,
+            status: 400,
           }
         );
       }
 
       const token = generateAuthToken(existingUser._id as Types.ObjectId);
 
-      console.log("Token: ", token);
+      // console.log("Token: ", token);
 
       const cookieStore = await cookies();
       cookieStore.set("token", token, {
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
           message: "User does not exists",
         },
         {
-          status: 500,
+          status: 400,
         }
       );
     }
