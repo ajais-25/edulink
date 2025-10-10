@@ -12,11 +12,13 @@ import {
 
 interface VerificationEmailProps {
   name: string;
+  email: string;
   otp: string;
 }
 
 export default function VerificationEmail({
   name,
+  email,
   otp,
 }: VerificationEmailProps) {
   return (
@@ -47,6 +49,31 @@ export default function VerificationEmail({
         </Row>
         <Row>
           <Text>{otp}</Text>
+        </Row>
+        <Row>
+          <Button
+            href={`http://localhost:3000/api/auth/verify-code?${email}`}
+            style={{
+              color: "#ffffff",
+              padding: "14px 32px",
+              backgroundColor: "#11ba14",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "16px",
+              fontWeight: "600",
+              fontFamily:
+                "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+              textDecoration: "none",
+              display: "inline-block",
+              textAlign: "center",
+              cursor: "pointer",
+              lineHeight: "1.5",
+              minWidth: "200px",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            Verify Email
+          </Button>
         </Row>
         <Row>
           <Text>

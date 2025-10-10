@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         const expiryDate = new Date();
         expiryDate.setHours(expiryDate.getHours() + 1);
 
-        existingUserByEmail.verifyCode;
+        existingUserByEmail.verifyCode = verifyCode;
         existingUserByEmail.verifyCodeExpiry = expiryDate;
 
         await existingUserByEmail.save();
