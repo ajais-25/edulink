@@ -5,14 +5,18 @@ import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import { cookies } from "next/headers";
 
-const generateAuthToken = (_id: Types.ObjectId): string => {
+const generateAuthToken = (
+  _id: Types.ObjectId,
+  name: string,
+  email: string
+): string => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
     throw new Error("JWT_SECRET is not configured");
   }
 
-  return jwt.sign({ _id }, Buffer.from(secret), {
+  return jwt.sign({ _id: _id.toString(), name, email }, secret, {
     expiresIn: "7d",
   });
 };
@@ -56,7 +60,11 @@ export async function POST(request: Request) {
         );
       }
 
-      const token = generateAuthToken(existingUser._id as Types.ObjectId);
+      const token = generateAuthToken(
+        existingUser._id as Types.ObjectId,
+        existingUser.name,
+        existingUser.email
+      );
 
       // console.log("Token: ", token);
 
