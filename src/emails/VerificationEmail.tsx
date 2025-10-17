@@ -52,7 +52,7 @@ export default function VerificationEmail({
         </Row>
         <Row>
           <Button
-            href={`http://localhost:3000/api/auth/verify-code?${email}`}
+            href={`http://localhost:3000/users/verify-code?${email}`}
             style={{
               color: "#ffffff",
               padding: "14px 32px",
