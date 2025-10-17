@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
+      maxAge: 0,
     });
 
     return response;
