@@ -92,7 +92,7 @@ export async function POST(request: Request) {
           },
         },
         {
-          status: 201,
+          status: 200,
         }
       );
     } else {
