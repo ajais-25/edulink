@@ -59,14 +59,8 @@ const userSchema: Schema<User> = new Schema(
         twitter: String,
       },
     },
-    verifyCode: {
-      type: String,
-      required: true,
-    },
-    verifyCodeExpiry: {
-      type: Date,
-      required: true,
-    },
+    verifyCode: String,
+    verifyCodeExpiry: Date,
     isVerified: {
       type: Boolean,
       required: true,
