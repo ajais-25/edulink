@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       {
         success: true,
         message: "User profile fetched successfully",
+        data: user,
       },
       { status: 200 }
     );
@@ -44,8 +45,7 @@ export async function PUT(request: NextRequest) {
   await dbConnect();
 
   try {
-    const { bio, avatar, socialLinks, linkedIn, twitter } =
-      await request.json();
+    const { bio, avatar, linkedIn, twitter } = await request.json();
 
     const userId = getDataFromToken(request);
 
