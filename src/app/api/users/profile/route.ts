@@ -39,3 +39,53 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function PUT(request: NextRequest) {
+  await dbConnect();
+
+  try {
+    const { bio, avatar, socialLinks, linkedIn, twitter } =
+      await request.json();
+
+    const userId = getDataFromToken(request);
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    user.profile.bio = bio;
+    user.profile.avatar = avatar;
+
+    if (user.profile.socialLinks) {
+      user.profile.socialLinks.linkedIn = linkedIn;
+      user.profile.socialLinks.twitter = twitter;
+    }
+
+    await user.save();
+
+    return Response.json(
+      {
+        success: false,
+        message: "Profile updated successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error while updating profile");
+    return Response.json(
+      {
+        success: false,
+        message: "Error while updating profile",
+      },
+      { status: 500 }
+    );
+  }
+}
