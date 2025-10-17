@@ -4,7 +4,11 @@ export default async function middleware(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname;
 
-    const isPublic = path == "/login" || path == "/signup";
+    const isPublic =
+      path == "/login" ||
+      path == "/signup" ||
+      path == "/forgot-password" ||
+      path == "/reset-password";
 
     const token = request.cookies.get("token")?.value || "";
 
