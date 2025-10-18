@@ -1,8 +1,9 @@
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { generateRandomToken } from "@/helpers/generateRandomToken";
-import bcrypt from "bcryptjs";
 import PasswordReset from "@/models/PasswordReset";
+import { sendForgotPasswordEmail } from "@/helpers/sendForgotPasswordEmail";
+import crypto from "crypto";
 
 export async function POST(request: Request) {
   await dbConnect();
@@ -32,10 +33,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const resetToken = generateRandomToken(16);
-    const hashedToken = await bcrypt.hash(resetToken, 10);
+    const resetToken = generateRandomToken();
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
 
-    const expiresAt = new Date(Date.now() + 60 * 15);
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 15);
+
+    const resetLink = `${process.env.DOMAIN_URL}/reset-password?token=${resetToken}`;
 
     const passwordReset = new PasswordReset({
       userId: user._id,
@@ -47,6 +53,7 @@ export async function POST(request: Request) {
     await passwordReset.save();
 
     // TODO: send password reset email
+    await sendForgotPasswordEmail(email, resetLink, "15 minutes");
 
     return Response.json(
       {

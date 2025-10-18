@@ -1,8 +1,10 @@
+import { sendPasswordResetConfirmationEmail } from "@/helpers/sendPasswordResetConfirmationEmail";
 import dbConnect from "@/lib/dbConnect";
 import PasswordReset from "@/models/PasswordReset";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
+import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   await dbConnect();
@@ -23,20 +25,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const hashedToken = await bcrypt.hash(token, 10);
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token.trim())
+      .digest("hex");
 
     const existingToken = await PasswordReset.findOne({
       token: hashedToken,
       expiresAt: {
-        $gt: new Date(Date.now()),
+        $gt: Date.now(),
       },
+      isUsed: false,
     });
 
     if (!existingToken) {
       return Response.json(
         {
           success: false,
-          message: "Invalid or expired reset token",
+          message: "Invalid token",
         },
         { status: 400 }
       );
@@ -44,16 +50,38 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await User.findByIdAndUpdate(existingToken.userId, {
-      $set: {
-        password: hashedPassword,
+    const user = await User.findByIdAndUpdate(
+      existingToken.userId,
+      {
+        $set: {
+          password: hashedPassword,
+        },
       },
-    });
+      { new: true }
+    );
+
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        { status: 404 }
+      );
+    }
 
     existingToken.isUsed = true;
     await existingToken.save();
 
+    const resetDate = new Date().toLocaleString();
+
     // TODO: send email on successful password reset
+    await sendPasswordResetConfirmationEmail(
+      user.name,
+      user.email,
+      resetDate,
+      process.env.SUPPORT_EMAIL || ""
+    );
 
     return Response.json(
       {

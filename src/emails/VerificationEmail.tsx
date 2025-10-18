@@ -52,7 +52,7 @@ export default function VerificationEmail({
         </Row>
         <Row>
           <Button
-            href={`http://localhost:3000/verify-code?${email}`}
+            href={`${process.env.DOMAIN_URL}/verify-code?${email}`}
             style={{
               color: "#ffffff",
               padding: "14px 32px",
