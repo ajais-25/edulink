@@ -1,86 +1,158 @@
 import {
-  Html,
+  Body,
+  Container,
   Head,
-  Font,
-  Preview,
   Heading,
-  Row,
+  Html,
+  Link,
+  Preview,
   Section,
   Text,
-  Button,
+  Hr,
 } from "@react-email/components";
+import * as React from "react";
+import { Header } from "./components/Header";
+import { Button } from "./components/Button";
+import { Footer } from "./components/Footer";
+import {
+  baseStyles,
+  typography,
+  components,
+  layout,
+  alerts,
+  lists,
+  iconSection,
+  emailIcon,
+  otpContainer,
+  otpLabel,
+  otpBox,
+  otpCode,
+  otpHelper,
+} from "./styles/styles";
 
 interface VerificationEmailProps {
   name: string;
-  email: string;
   otp: string;
+  verifyUrl: string;
+  expiryTime?: string;
 }
 
-export default function VerificationEmail({
+export const VerificationEmail = ({
   name,
-  email,
   otp,
-}: VerificationEmailProps) {
+  verifyUrl,
+  expiryTime = "10 minutes",
+}: VerificationEmailProps) => {
   return (
-    <Html lang="en" dir="ltr">
-      <Head>
-        <title>Verification Code</title>
-        <Font
-          fontFamily="Roboto"
-          fallbackFontFamily="Verdana"
-          webFont={{
-            url: "https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
-            format: "woff2",
-          }}
-          fontWeight={400}
-          fontStyle="normal"
-        />
-      </Head>
-      <Preview>Here&apos;s your verification code: {otp}</Preview>
-      <Section>
-        <Row>
-          <Heading as="h2">Hello {name},</Heading>
-        </Row>
-        <Row>
-          <Text>
-            Thank you for registering. Please use the following verification
-            code to complete your registration:
-          </Text>
-        </Row>
-        <Row>
-          <Text>{otp}</Text>
-        </Row>
-        <Row>
-          <Button
-            href={`${process.env.DOMAIN_URL}/verify-code?${email}`}
-            style={{
-              color: "#ffffff",
-              padding: "14px 32px",
-              backgroundColor: "#11ba14",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "16px",
-              fontWeight: "600",
-              fontFamily:
-                "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-              textDecoration: "none",
-              display: "inline-block",
-              textAlign: "center",
-              cursor: "pointer",
-              lineHeight: "1.5",
-              minWidth: "200px",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            Verify Email
-          </Button>
-        </Row>
-        <Row>
-          <Text>
-            If you did not request this code, please ignore this email.
-          </Text>
-        </Row>
-      </Section>
+    <Html>
+      <Head />
+      <Preview>Verify your email address - OTP: {otp}</Preview>
+      <Body style={baseStyles.main}>
+        <Container style={baseStyles.container}>
+          <Header />
+
+          <Section style={baseStyles.content}>
+            {/* Email Icon */}
+            <Section style={iconSection}>
+              <Text style={emailIcon}>📧</Text>
+            </Section>
+
+            <Heading style={typography.heading}>
+              Verify Your Email Address
+            </Heading>
+
+            <Text style={typography.paragraph}>Hi {name},</Text>
+
+            <Text style={typography.paragraph}>
+              Thank you for signing up! To complete your registration and
+              activate your account, please verify your email address using the
+              OTP code below.
+            </Text>
+
+            {/* OTP Display */}
+            <Section style={otpContainer}>
+              <Text style={otpLabel}>Your Verification Code</Text>
+              <Section style={otpBox}>
+                <Text style={otpCode}>{otp}</Text>
+              </Section>
+              <Text style={otpHelper}>
+                Enter this code on the verification page
+              </Text>
+            </Section>
+
+            {/* Verify Button */}
+            <Section style={layout.centered}>
+              <Button href={verifyUrl}>Verify Email Now</Button>
+            </Section>
+
+            <Text
+              style={{
+                ...typography.small,
+                textAlign: "center" as const,
+                color: "#6b7280",
+                margin: "16px 0",
+              }}
+            >
+              Or manually enter the code on the verification page
+            </Text>
+
+            <Hr style={components.hr} />
+
+            {/* Info Box */}
+            <Section style={alerts.info.container}>
+              <Text style={alerts.info.title}>📝 Important Information</Text>
+              <Text style={alerts.info.text}>
+                <strong>• This code will expire in {expiryTime}</strong>
+              </Text>
+              <Text style={alerts.info.text}>
+                • This code can only be used once
+              </Text>
+              <Text style={alerts.info.text}>
+                • Don't share this code with anyone
+              </Text>
+            </Section>
+
+            <Hr style={components.hr} />
+
+            {/* Security Warning */}
+            <Section style={alerts.warning.container}>
+              <Text style={alerts.warning.title}>⚠️ Didn't sign up?</Text>
+              <Text style={alerts.warning.text}>
+                If you didn't create an account, please ignore this email. Your
+                email address will not be used without verification.
+              </Text>
+            </Section>
+
+            <Hr style={components.hr} />
+
+            {/* Why Verify */}
+            <Section style={lists.container}>
+              <Text style={lists.title}>🔐 Why do we verify emails?</Text>
+              <ul style={lists.ul}>
+                <li style={lists.li}>Ensures account security</li>
+                <li style={lists.li}>Confirms you own this email address</li>
+                <li style={lists.li}>Helps us send you important updates</li>
+                <li style={lists.li}>Protects against unauthorized access</li>
+              </ul>
+            </Section>
+
+            <Text
+              style={{
+                ...typography.small,
+                textAlign: "center" as const,
+                marginTop: "32px",
+              }}
+            >
+              Need help? Contact our support team at{" "}
+              <Link href="mailto:support@yourapp.com" style={components.link}>
+                support@yourapp.com
+              </Link>
+            </Text>
+          </Section>
+
+          <Footer />
+        </Container>
+      </Body>
     </Html>
   );
-}
+};

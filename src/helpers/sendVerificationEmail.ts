@@ -1,9 +1,10 @@
 import { resend } from "@/lib/resend";
-import VerificationEmail from "@/emails/VerificationEmail";
+import { VerificationEmail } from "@/emails/VerificationEmail";
 
 export async function sendVerificationEmail(
   name: string,
   email: string,
+  verifyUrl: string,
   verifyCode: string
 ) {
   try {
@@ -11,7 +12,7 @@ export async function sendVerificationEmail(
       from: "onboarding@resend.dev",
       to: email,
       subject: "EduLink | Verification Code",
-      react: VerificationEmail({ name, email, otp: verifyCode }),
+      react: VerificationEmail({ name, verifyUrl, otp: verifyCode }),
     });
 
     // console.log("Email Data: ", data);

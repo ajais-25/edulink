@@ -1,3 +1,54 @@
+// verification email
+export const iconSection = {
+  textAlign: "center" as const,
+  margin: "20px 0",
+};
+
+export const emailIcon = {
+  fontSize: "64px",
+  margin: "0",
+};
+
+export const otpContainer = {
+  textAlign: "center" as const,
+  margin: "32px 0",
+};
+
+export const otpLabel = {
+  fontSize: "14px",
+  fontWeight: "600",
+  color: "#6b7280",
+  textTransform: "uppercase" as const,
+  letterSpacing: "1px",
+  margin: "0 0 16px 0",
+};
+
+export const otpBox = {
+  backgroundColor: "#f9fafb",
+  border: "2px dashed #4F46E5",
+  borderRadius: "12px",
+  padding: "24px",
+  margin: "16px auto",
+  maxWidth: "280px",
+};
+
+export const otpCode = {
+  fontSize: "42px",
+  fontWeight: "bold",
+  color: "#4F46E5",
+  letterSpacing: "8px",
+  fontFamily: "monospace",
+  margin: "0",
+  textAlign: "center" as const,
+};
+
+export const otpHelper = {
+  fontSize: "14px",
+  color: "#6b7280",
+  margin: "16px 0 0 0",
+};
+
+// forgot and reset password
 export const colors = {
   primary: "#4F46E5", // Indigo
   success: "#10B981", // Green

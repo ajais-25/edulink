@@ -53,7 +53,9 @@ export async function POST(request: Request) {
       await newUser.save();
     }
 
-    await sendVerificationEmail(name, email, verifyCode);
+    const verifyUrl = `${process.env.DOMAIN_URL}/verify-code?email=${email}`;
+
+    await sendVerificationEmail(name, email, verifyUrl, verifyCode);
 
     return Response.json(
       {
