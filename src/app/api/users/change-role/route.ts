@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { NextRequest } from "next/server";
 
-export async function PUT(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   await dbConnect();
 
   try {
