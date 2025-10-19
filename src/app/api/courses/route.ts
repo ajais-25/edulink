@@ -1,12 +1,27 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
+import User from "@/models/User";
 import { NextRequest } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   await dbConnect();
 
   try {
+    const userId = getDataFromToken(request);
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized user",
+        },
+        { status: 401 }
+      );
+    }
+
     const courses = await Course.find();
 
     return Response.json(
@@ -34,6 +49,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const userId = getDataFromToken(request);
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized user",
+        },
+        { status: 401 }
+      );
+    }
 
     const {
       title,
