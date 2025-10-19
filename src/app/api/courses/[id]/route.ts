@@ -4,7 +4,10 @@ import Course from "@/models/Course";
 import User from "@/models/User";
 import { NextRequest } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   await dbConnect();
 
   try {
@@ -22,29 +25,44 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const courses = await Course.find();
+    const { id } = params;
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return Response.json(
+        {
+          success: false,
+          message: "Course not found",
+        },
+        { status: 404 }
+      );
+    }
 
     return Response.json(
       {
         success: true,
-        message: "Courses fetched successfully",
-        data: courses,
+        message: "Course fetched successfully",
+        data: course,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching courses", error);
+    console.error("Error fetching course", error);
     return Response.json(
       {
         success: false,
-        message: "Error fetching courses",
+        message: "Error fetching course",
       },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   await dbConnect();
 
   try {
@@ -66,9 +84,23 @@ export async function POST(request: NextRequest) {
       return Response.json(
         {
           success: false,
-          message: "You need to be an Instructor to create a course",
+          message: "You need to be an Instructor to update a course",
         },
         { status: 400 }
+      );
+    }
+
+    const { id } = params;
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return Response.json(
+        {
+          success: false,
+          message: "Course not found",
+        },
+        { status: 404 }
       );
     }
 
@@ -134,23 +166,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await Course.create({
-      title,
-      description,
-      instructor: userId,
-      thumbnail: imagekit.url,
-      category,
-      level,
-      price,
-      isPublished,
-    });
+    const updatedCourse = await Course.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        instructor: userId,
+        thumbnail: imagekit.url,
+        category,
+        level,
+        price,
+        isPublished,
+      },
+      { new: true }
+    );
 
     return Response.json(
       {
         success: true,
-        message: "Course created successfully",
+        message: "Course updated successfully",
+        data: updatedCourse,
       },
-      { status: 201 }
+      { status: 200 }
     );
   } catch (error) {
     console.error("An error occured while creating course", error);
