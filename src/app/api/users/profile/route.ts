@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
       return Response.json(
         {
           success: false,
-          message: "User not found",
+          message: "Unauthorized user",
         },
-        { status: 404 }
+        { status: 401 }
       );
     }
 
@@ -55,9 +55,9 @@ export async function PUT(request: NextRequest) {
       return Response.json(
         {
           success: false,
-          message: "User not found",
+          message: "Unauthorized user",
         },
-        { status: 404 }
+        { status: 401 }
       );
     }
 

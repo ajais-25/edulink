@@ -18,6 +18,10 @@ export function getDataFromToken(request: NextRequest) {
 
     const decodedToken = jwt.verify(token, secret) as JwtPayload & DecodedToken;
 
+    if (!decodedToken._id) {
+      throw new Error("Invalid token");
+    }
+
     return decodedToken._id;
   } catch (error: any) {
     throw new Error(error.message);

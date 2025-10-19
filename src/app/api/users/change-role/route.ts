@@ -11,9 +11,19 @@ export async function PUT(request: NextRequest) {
 
     const user = await User.findById(userId).select("-password");
 
-    if (user?.role === "student") {
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized user",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (user.role === "student") {
       user.role = "instructor";
-    } else if (user?.role === "instructor") {
+    } else if (user.role === "instructor") {
       user.role = "student";
     } else {
       return Response.json(
