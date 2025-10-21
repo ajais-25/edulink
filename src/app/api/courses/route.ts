@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
       price,
       isPublished,
       imagekit,
-      userId: bodyUserId,
     } = await request.json();
 
     if (
@@ -89,7 +88,7 @@ export async function POST(request: NextRequest) {
       !category ||
       !level ||
       !price ||
-      !isPublished
+      isPublished === undefined
     ) {
       return Response.json(
         {
@@ -101,8 +100,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (
-      level !== "beginner" ||
-      level !== "intermediate" ||
+      level !== "beginner" &&
+      level !== "intermediate" &&
       level !== "advanced"
     ) {
       return Response.json(
@@ -111,16 +110,6 @@ export async function POST(request: NextRequest) {
           message: "Invalid level provided",
         },
         { status: 400 }
-      );
-    }
-
-    if (bodyUserId !== userId) {
-      return Response.json(
-        {
-          success: false,
-          message: "Unauthorized user",
-        },
-        { status: 401 }
       );
     }
 
