@@ -22,7 +22,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const courses = await Course.find();
+    const courses = await Course.find({
+      instructor: {
+        $ne: userId,
+      },
+      isPublished: true,
+    });
 
     return Response.json(
       {

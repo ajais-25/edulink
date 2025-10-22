@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Plus, Users, Star } from "lucide-react";
 import {
   ImageKitAbortError,
@@ -12,7 +12,7 @@ import {
 import axios from "axios";
 
 interface Course {
-  id: number;
+  _id: string;
   title: string;
   description: string;
   thumbnail: string;
@@ -38,7 +38,7 @@ interface FormData {
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([
     {
-      id: 1,
+      _id: "1",
       title: "Web Development Fundamentals",
       description: "Learn the basics of HTML, CSS, and JavaScript",
       thumbnail:
@@ -51,7 +51,7 @@ export default function CoursesPage() {
       rating: 4.5,
     },
     {
-      id: 2,
+      _id: "2",
       title: "Advanced React Patterns",
       description: "Master advanced React concepts and design patterns",
       thumbnail:
@@ -64,7 +64,7 @@ export default function CoursesPage() {
       rating: 4.5,
     },
     {
-      id: 3,
+      _id: "3",
       title: "UI/UX Design Masterclass",
       description: "Create beautiful and user-friendly interfaces",
       thumbnail:
@@ -89,6 +89,20 @@ export default function CoursesPage() {
     price: "",
     isPublished: false,
   });
+
+  useEffect(() => {
+    const getCourses = async () => {
+      try {
+        const response = await axios.get("/api/courses");
+
+        setCourses(response.data.data);
+      } catch (error) {
+        console.error("Error fetching courses");
+      }
+    };
+
+    getCourses();
+  }, []);
 
   const [progress, setProgress] = useState(0);
 
@@ -190,7 +204,7 @@ export default function CoursesPage() {
 
       const response = await axios.post("/api/courses", axiosData);
 
-      console.log(response);
+      // console.log(response);
     } catch (error) {
       if (error instanceof ImageKitAbortError) {
         console.error("Upload aborted:", error.reason);
@@ -234,7 +248,7 @@ export default function CoursesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
             <div
-              key={course.id}
+              key={course._id}
               className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
             >
               <div className="relative">
@@ -260,7 +274,10 @@ export default function CoursesPage() {
                   <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
                     {course.category}
                   </span>
-                  <span className="text-xs text-gray-500">{course.level}</span>
+                  <span className="text-xs text-gray-500">
+                    {course.level.slice(0, 1).toUpperCase() +
+                      course.level.slice(1)}
+                  </span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {course.title}
