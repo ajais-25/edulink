@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
-import { Module } from "./Module";
 
 export interface Rating {
   average?: number;
@@ -17,7 +16,6 @@ export interface Course extends Document {
   isPublished: boolean;
   enrollmentCount: number;
   rating?: Rating;
-  modules?: Module[];
 }
 
 const courseSchema: Schema<Course> = new Schema(
@@ -66,12 +64,6 @@ const courseSchema: Schema<Course> = new Schema(
       average: Number,
       count: Number,
     },
-    modules: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Module",
-      },
-    ],
   },
   { timestamps: true }
 );

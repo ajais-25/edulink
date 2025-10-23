@@ -1,7 +1,8 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 import { Lesson } from "./Lesson";
 
 export interface Module extends Document {
+  courseId: Types.ObjectId;
   title: string;
   description: string;
   order: number;
@@ -10,6 +11,10 @@ export interface Module extends Document {
 
 const moduleSchema: Schema<Module> = new Schema(
   {
+    courseId: {
+      type: Schema.Types.ObjectId,
+      ref: "Course",
+    },
     title: {
       type: String,
       required: true,

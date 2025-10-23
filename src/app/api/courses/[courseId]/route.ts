@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { courseId: string } }
 ) {
   await dbConnect();
 
@@ -25,9 +25,9 @@ export async function GET(
       );
     }
 
-    const { id } = params;
+    const { courseId } = params;
 
-    const course = await Course.findById(id);
+    const course = await Course.findById(courseId);
 
     if (!course) {
       return Response.json(
@@ -61,7 +61,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { courseId: string } }
 ) {
   await dbConnect();
 
@@ -90,9 +90,9 @@ export async function PATCH(
       );
     }
 
-    const { id } = params;
+    const { courseId } = params;
 
-    const course = await Course.findById(id);
+    const course = await Course.findById(courseId);
 
     if (!course) {
       return Response.json(
@@ -104,6 +104,16 @@ export async function PATCH(
       );
     }
 
+    if (course.instructor.toString() !== userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "You are not the instructor of this course",
+        },
+        { status: 401 }
+      );
+    }
+
     const {
       title,
       description,
@@ -112,7 +122,6 @@ export async function PATCH(
       price,
       isPublished,
       imagekit,
-      userId: bodyUserId,
     } = await request.json();
 
     if (
@@ -133,8 +142,8 @@ export async function PATCH(
     }
 
     if (
-      level !== "beginner" ||
-      level !== "intermediate" ||
+      level !== "beginner" &&
+      level !== "intermediate" &&
       level !== "advanced"
     ) {
       return Response.json(
@@ -143,16 +152,6 @@ export async function PATCH(
           message: "Invalid level provided",
         },
         { status: 400 }
-      );
-    }
-
-    if (bodyUserId !== userId) {
-      return Response.json(
-        {
-          success: false,
-          message: "Unauthorized user",
-        },
-        { status: 401 }
       );
     }
 
@@ -167,7 +166,7 @@ export async function PATCH(
     }
 
     const updatedCourse = await Course.findByIdAndUpdate(
-      id,
+      courseId,
       {
         title,
         description,

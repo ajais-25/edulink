@@ -1,12 +1,13 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
+import Enrollment from "@/models/Enrollment";
 import User from "@/models/User";
 import { NextRequest } from "next/server";
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { courseId: string } }
 ) {
   await dbConnect();
 
@@ -25,19 +26,19 @@ export async function PATCH(
       );
     }
 
-    if (user.role !== "instructor") {
+    if (user.role !== "student") {
       return Response.json(
         {
           success: false,
-          message: "You need to be an Instructor to change publish status",
+          message: "You need to be an Student to enroll into course",
         },
         { status: 400 }
       );
     }
 
-    const { id } = params;
+    const { courseId } = params;
 
-    const course = await Course.findById(id);
+    const course = await Course.findById(courseId);
 
     if (!course) {
       return Response.json(
@@ -49,23 +50,38 @@ export async function PATCH(
       );
     }
 
-    course.isPublished = !course.isPublished;
+    if (course.instructor.toString() === userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "You cannot enroll to your own course",
+        },
+        { status: 400 }
+      );
+    }
+
+    await Enrollment.create({
+      student: userId,
+      course: courseId,
+      status: "active",
+    });
+
+    course.enrollmentCount = course.enrollmentCount + 1;
     await course.save();
 
     return Response.json(
       {
         success: true,
-        message: "Course status changed successfully",
-        data: course,
+        message: "Enrolled successfully",
       },
-      { status: 200 }
+      { status: 201 }
     );
   } catch (error) {
-    console.error("Error changing status", error);
+    console.error("Error occured while enrolling", error);
     return Response.json(
       {
         success: false,
-        message: "Error changing status",
+        message: "Error occured while enrolling",
       },
       { status: 500 }
     );
