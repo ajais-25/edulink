@@ -15,7 +15,6 @@ export interface Question {
 
 export interface Quiz extends Document {
   lessonId: Types.ObjectId;
-  title: string;
   timeLimit: number;
   passingScore: number;
   questions: Question[];
@@ -55,10 +54,6 @@ const quizSchema: Schema<Quiz> = new Schema(
     lessonId: {
       type: Schema.Types.ObjectId,
       ref: "Lesson",
-      required: true,
-    },
-    title: {
-      type: String,
       required: true,
     },
     timeLimit: {

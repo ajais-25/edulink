@@ -3,7 +3,6 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface Module extends Document {
   courseId: Types.ObjectId;
   title: string;
-  description: string;
   order: number;
 }
 
@@ -14,10 +13,6 @@ const moduleSchema: Schema<Module> = new Schema(
       ref: "Course",
     },
     title: {
-      type: String,
-      required: true,
-    },
-    description: {
       type: String,
       required: true,
     },

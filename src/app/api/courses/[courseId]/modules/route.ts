@@ -121,9 +121,9 @@ export async function POST(
       );
     }
 
-    const { title, description, order } = await request.json();
+    const { title, order } = await request.json();
 
-    if (!title || !description || !order) {
+    if (!title || !order) {
       return Response.json(
         {
           success: false,
@@ -148,7 +148,6 @@ export async function POST(
     await Module.create({
       courseId,
       title,
-      description,
       order,
     });
 

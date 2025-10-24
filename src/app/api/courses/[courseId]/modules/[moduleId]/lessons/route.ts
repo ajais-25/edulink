@@ -145,9 +145,9 @@ export async function POST(
       );
     }
 
-    const { title, description, order, type } = await request.json();
+    const { title, order, type } = await request.json();
 
-    if (!title || !description || !order || !type) {
+    if (!title || !order || !type) {
       return Response.json(
         {
           success: false,
@@ -173,7 +173,6 @@ export async function POST(
 
       courseLesson = await Lesson.create({
         title,
-        description,
         order,
         type,
       });
@@ -200,7 +199,6 @@ export async function POST(
     } else if (type === "quiz") {
       courseLesson = await Lesson.create({
         title,
-        description,
         order,
         type,
       });
@@ -215,21 +213,10 @@ export async function POST(
         );
       }
 
-      const {
-        title: quizTitle,
-        timeLimit,
-        passingScore,
-        questions,
-        isPublished,
-      } = await request.json();
+      const { timeLimit, passingScore, questions, isPublished } =
+        await request.json();
 
-      if (
-        !quizTitle ||
-        !timeLimit ||
-        !passingScore ||
-        !questions ||
-        !isPublished
-      ) {
+      if (!timeLimit || !passingScore || !questions || !isPublished) {
         return Response.json(
           {
             success: false,
@@ -241,7 +228,6 @@ export async function POST(
 
       const lessonQuiz = await Quiz.create({
         lessonId: courseLesson._id,
-        title: quizTitle,
         timeLimit,
         passingScore,
         questions,
