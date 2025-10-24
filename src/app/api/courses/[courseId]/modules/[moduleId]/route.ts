@@ -93,6 +93,16 @@ export async function PATCH(
       );
     }
 
+    if (user.role !== "instructor") {
+      return Response.json(
+        {
+          success: false,
+          message: "You need to be an Instructor to update a module",
+        },
+        { status: 400 }
+      );
+    }
+
     const { courseId, moduleId } = params;
 
     const course = await Course.findById(courseId);

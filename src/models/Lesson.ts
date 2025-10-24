@@ -1,21 +1,21 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
-export interface Content {
-  videoUrl?: string;
-  duration?: number;
-  quizId?: Types.ObjectId;
-}
-
 export interface Lesson extends Document {
+  moduleId: Types.ObjectId;
   title: string;
   description: string;
   order: number;
   type: "video" | "quiz";
-  content: Content;
+  videoId: Types.ObjectId;
+  quizId: Types.ObjectId;
 }
 
 const lessonSchema: Schema<Lesson> = new Schema(
   {
+    moduleId: {
+      type: Schema.Types.ObjectId,
+      ref: "Module",
+    },
     title: {
       type: String,
       required: true,
@@ -33,13 +33,13 @@ const lessonSchema: Schema<Lesson> = new Schema(
       enum: ["video", "quiz"],
       required: true,
     },
-    content: {
-      videoUrl: String,
-      duration: Number,
-      quizId: {
-        type: Schema.Types.ObjectId,
-        ref: "Quiz",
-      },
+    videoId: {
+      type: Schema.Types.ObjectId,
+      ref: "Video",
+    },
+    quizId: {
+      type: Schema.Types.ObjectId,
+      ref: "Quiz",
     },
   },
   { timestamps: true }

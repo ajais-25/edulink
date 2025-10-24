@@ -87,6 +87,16 @@ export async function POST(
       );
     }
 
+    if (user.role !== "instructor") {
+      return Response.json(
+        {
+          success: false,
+          message: "You need to be an Instructor to create a module",
+        },
+        { status: 400 }
+      );
+    }
+
     const { courseId } = params;
 
     const course = await Course.findById(courseId);
