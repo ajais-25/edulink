@@ -1,12 +1,10 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
-import { Lesson } from "./Lesson";
 
 export interface Module extends Document {
   courseId: Types.ObjectId;
   title: string;
   description: string;
   order: number;
-  lessons: Lesson[];
 }
 
 const moduleSchema: Schema<Module> = new Schema(
@@ -27,12 +25,6 @@ const moduleSchema: Schema<Module> = new Schema(
       type: Number,
       required: true,
     },
-    lessons: [
-      {
-        type: Schema.Types.ObjectId,
-        required: true,
-      },
-    ],
   },
   { timestamps: true }
 );
