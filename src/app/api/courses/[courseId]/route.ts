@@ -117,24 +117,9 @@ export async function PATCH(
       );
     }
 
-    const {
-      title,
-      description,
-      category,
-      level,
-      price,
-      isPublished,
-      imagekit,
-    } = await request.json();
+    const { title, description, category, level, price } = await request.json();
 
-    if (
-      !title ||
-      !description ||
-      !category ||
-      !level ||
-      !price ||
-      !isPublished
-    ) {
+    if (!title || !description || !category || !level || !price) {
       return Response.json(
         {
           success: false,
@@ -158,27 +143,15 @@ export async function PATCH(
       );
     }
 
-    if (!imagekit || !imagekit.url) {
-      return Response.json(
-        {
-          success: false,
-          message: "Invalid file upload data",
-        },
-        { status: 400 }
-      );
-    }
-
     const updatedCourse = await Course.findByIdAndUpdate(
       courseId,
       {
         title,
         description,
         instructor: userId,
-        thumbnail: imagekit.url,
         category,
         level,
         price,
-        isPublished,
       },
       { new: true }
     );
