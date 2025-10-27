@@ -1,6 +1,7 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
+import Module from "@/models/Module";
 import User from "@/models/User";
 import { NextRequest } from "next/server";
 
@@ -39,11 +40,13 @@ export async function GET(
       );
     }
 
+    const modules = await Module.find({ courseId }).sort({ createdAt: 1 });
+
     return Response.json(
       {
         success: true,
         message: "Course fetched successfully",
-        data: course,
+        data: { course, modules },
       },
       { status: 200 }
     );
@@ -86,7 +89,7 @@ export async function PATCH(
           success: false,
           message: "You need to be an Instructor to update a course",
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
@@ -110,7 +113,7 @@ export async function PATCH(
           success: false,
           message: "You are not the instructor of this course",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 

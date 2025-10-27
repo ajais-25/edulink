@@ -1,6 +1,7 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
+import Lesson from "@/models/Lesson";
 import Module from "@/models/Module";
 import User from "@/models/User";
 import { NextRequest } from "next/server";
@@ -52,11 +53,15 @@ export async function GET(
       );
     }
 
+    const lessons = await Lesson.find({ moduleId })
+      .select("title type")
+      .sort({ createdAt: 1 });
+
     return Response.json(
       {
         success: true,
         message: "Module found",
-        data: courseModule,
+        data: { module: courseModule, lessons },
       },
       { status: 200 }
     );
@@ -99,7 +104,7 @@ export async function PATCH(
           success: false,
           message: "You need to be an Instructor to update a module",
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
@@ -135,28 +140,33 @@ export async function PATCH(
           success: false,
           message: "You are not the instructor of this course",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
-    const { title, description, order } = await request.json();
-
-    const isExistingOrder = await Module.findOne({ courseId, order });
-
-    if (isExistingOrder) {
+    if (courseModule.courseId.toString() !== courseId) {
       return Response.json(
         {
           success: false,
-          message: "Incorrect module order",
+          message: "Module does not belong to this course",
+        },
+        { status: 400 }
+      );
+    }
+
+    const { title } = await request.json();
+
+    if (!title) {
+      return Response.json(
+        {
+          success: false,
+          message: "Title is not required",
         },
         { status: 400 }
       );
     }
 
     courseModule.title = title;
-    courseModule.description = description;
-    courseModule.order = order;
-
     await courseModule.save();
 
     return Response.json(

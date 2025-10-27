@@ -32,7 +32,7 @@ export async function POST(
           success: false,
           message: "You need to be an Student to enroll into course",
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 

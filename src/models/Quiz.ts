@@ -18,7 +18,6 @@ export interface Quiz extends Document {
   timeLimit: number;
   passingScore: number;
   questions: Question[];
-  isPublished: boolean;
 }
 
 const questionSchema: Schema<Question> = new Schema({
@@ -66,10 +65,6 @@ const quizSchema: Schema<Quiz> = new Schema(
     },
     questions: {
       type: [questionSchema],
-      required: true,
-    },
-    isPublished: {
-      type: Boolean,
       required: true,
     },
   },

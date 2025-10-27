@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "You need to be an Instructor to create a course",
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 

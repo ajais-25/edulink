@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
           success: false,
           message: "You need to be an Instructor to do this",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 

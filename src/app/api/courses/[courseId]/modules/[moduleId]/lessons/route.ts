@@ -9,75 +9,6 @@ import Video from "@/models/Video";
 import { Types } from "mongoose";
 import { NextRequest } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { courseId: string; moduleId: string } }
-) {
-  await dbConnect();
-
-  try {
-    const userId = getDataFromToken(request);
-
-    const user = await User.findById(userId).select("-password");
-
-    if (!user) {
-      return Response.json(
-        {
-          success: false,
-          message: "Unauthorized user",
-        },
-        { status: 401 }
-      );
-    }
-
-    const { courseId, moduleId } = params;
-
-    const course = await Course.findById(courseId);
-
-    if (!course) {
-      return Response.json(
-        {
-          success: false,
-          message: "Course not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    const courseModule = await Module.findById(moduleId);
-
-    if (!courseModule) {
-      return Response.json(
-        {
-          success: false,
-          message: "Module not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    const moduleLessons = await Lesson.find({ moduleId }).sort({ order: 1 });
-
-    return Response.json(
-      {
-        success: true,
-        message: "Module lessons fetched successfully",
-        data: moduleLessons,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error occured while fetching lessons");
-    return Response.json(
-      {
-        success: false,
-        message: "Error occured while fetching lessons",
-      },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: { courseId: string; moduleId: string } }
@@ -105,7 +36,7 @@ export async function POST(
           success: false,
           message: "You need to be an Instructor to create a lesson",
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
@@ -141,13 +72,13 @@ export async function POST(
           success: false,
           message: "You are not the instructor of this course",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
-    const { title, order, type } = await request.json();
+    const { title, type } = await request.json();
 
-    if (!title || !order || !type) {
+    if (!title || !type) {
       return Response.json(
         {
           success: false,
@@ -173,7 +104,6 @@ export async function POST(
 
       courseLesson = await Lesson.create({
         title,
-        order,
         type,
       });
 
@@ -199,7 +129,6 @@ export async function POST(
     } else if (type === "quiz") {
       courseLesson = await Lesson.create({
         title,
-        order,
         type,
       });
 
@@ -213,10 +142,9 @@ export async function POST(
         );
       }
 
-      const { timeLimit, passingScore, questions, isPublished } =
-        await request.json();
+      const { timeLimit, passingScore, questions } = await request.json();
 
-      if (!timeLimit || !passingScore || !questions || !isPublished) {
+      if (!timeLimit || !passingScore || !questions) {
         return Response.json(
           {
             success: false,
@@ -231,7 +159,6 @@ export async function POST(
         timeLimit,
         passingScore,
         questions,
-        isPublished,
       });
 
       console.log(lessonQuiz);
