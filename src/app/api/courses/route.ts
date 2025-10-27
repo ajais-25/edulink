@@ -132,7 +132,10 @@ export async function POST(request: NextRequest) {
       title,
       description,
       instructor: userId,
-      thumbnail: imagekit.url,
+      thumbnail: {
+        fileId: imagekit.fileId,
+        url: imagekit.url,
+      },
       category,
       level,
       price,

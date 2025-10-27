@@ -5,11 +5,16 @@ export interface Rating {
   count?: number;
 }
 
+export interface Thumbnail {
+  fileId: string;
+  url: string;
+}
+
 export interface Course extends Document {
   title: string;
   description: string;
   instructor: Types.ObjectId;
-  thumbnail: string;
+  thumbnail: Thumbnail;
   category: string;
   level: "beginner" | "intermediate" | "advanced";
   price: number;
@@ -34,8 +39,14 @@ const courseSchema: Schema<Course> = new Schema(
       required: true,
     },
     thumbnail: {
-      type: String,
-      required: true,
+      fileId: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
     },
     category: {
       type: String,

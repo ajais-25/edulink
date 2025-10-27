@@ -119,6 +119,7 @@ export async function POST(
 
       const video = await Video.create({
         lessonId: courseLesson._id,
+        fileId: imagekit.fileId,
         videoUrl: imagekit.url,
         thumbnail: `${imagekit.url}/ik-thumbnail.jpg?tr=so-0`,
         duration: imagekit.duration,

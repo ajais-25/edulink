@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface Video extends Document {
   lessonId: Types.ObjectId;
+  fileId: string;
   videoUrl: string;
   thumbnail: string;
   duration: number;
@@ -12,6 +13,10 @@ const videoSchema: Schema<Video> = new Schema(
     lessonId: {
       type: Schema.Types.ObjectId,
       ref: "Lesson",
+      required: true,
+    },
+    fileId: {
+      type: String,
       required: true,
     },
     videoUrl: {
