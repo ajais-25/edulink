@@ -1,5 +1,5 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
-import { deleteFile } from "@/helpers/imagekit/deleteFile";
+import { deleteFile } from "@/helpers/deleteFile";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
 import Lesson from "@/models/Lesson";
