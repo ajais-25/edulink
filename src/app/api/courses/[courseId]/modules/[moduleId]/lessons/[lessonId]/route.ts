@@ -166,15 +166,11 @@ export async function DELETE(
       }
 
       await Video.findByIdAndDelete(lesson.videoId);
-      const deletedLesson = await Lesson.findByIdAndDelete(lessonId);
-
-      console.log(deletedLesson);
+      await Lesson.findByIdAndDelete(lessonId);
 
       await deleteFile(lessonVideo.fileId);
     } else if (lesson.type === "quiz") {
-      const deletedQuiz = await Quiz.findByIdAndDelete(lesson.quizId);
-
-      console.log(deletedQuiz);
+      await Quiz.findByIdAndDelete(lesson.quizId);
     }
 
     return Response.json(
