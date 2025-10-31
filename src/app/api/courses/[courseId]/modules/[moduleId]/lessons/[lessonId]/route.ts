@@ -91,7 +91,7 @@ export async function GET(
   }
 }
 
-export async function DELETE(
+export async function PATCH(
   request: NextRequest,
   {
     params,
@@ -111,6 +111,16 @@ export async function DELETE(
           message: "Unauthorized user",
         },
         { status: 401 }
+      );
+    }
+
+    if (user.role !== "instructor") {
+      return Response.json(
+        {
+          success: false,
+          message: "You need to be an Instructor to update a lesson",
+        },
+        { status: 403 }
       );
     }
 
@@ -149,6 +159,131 @@ export async function DELETE(
           message: "Lesson not found",
         },
         { status: 404 }
+      );
+    }
+
+    if (course.instructor.toString() !== userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "You are not the instructor of this course",
+        },
+        { status: 403 }
+      );
+    }
+
+    const { title } = await request.json();
+
+    if (!title) {
+      return Response.json(
+        {
+          success: false,
+          message: "Title is required",
+        },
+        { status: 400 }
+      );
+    }
+
+    lesson.title = title;
+    await lesson.save();
+
+    return Response.json(
+      {
+        success: true,
+        message: "Lesson title updated successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error occured while updating lesson");
+    return Response.json(
+      {
+        success: false,
+        message: "Error occured while updating lesson",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  {
+    params,
+  }: { params: { courseId: string; moduleId: string; lessonId: string } }
+) {
+  await dbConnect();
+
+  try {
+    const userId = getDataFromToken(request);
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized user",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (user.role !== "instructor") {
+      return Response.json(
+        {
+          success: false,
+          message: "You need to be an Instructor to delete a lesson",
+        },
+        { status: 403 }
+      );
+    }
+
+    const { courseId, moduleId, lessonId } = params;
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return Response.json(
+        {
+          success: false,
+          message: "Course not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const courseModule = await Module.findById(moduleId);
+
+    if (!courseModule) {
+      return Response.json(
+        {
+          success: false,
+          message: "Module not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const lesson = await Lesson.findById(lessonId);
+
+    if (!lesson) {
+      return Response.json(
+        {
+          success: false,
+          message: "Lesson not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (course.instructor.toString() !== userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "You are not the instructor of this course",
+        },
+        { status: 403 }
       );
     }
 
