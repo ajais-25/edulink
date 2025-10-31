@@ -3,16 +3,14 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface Response {
   questionId: number;
   selectedOption: number;
-  isCorrect: boolean;
-  points: number;
+  isCorrect?: boolean;
+  points?: number;
+  explanation: string;
 }
 
 export interface QuizAttempt extends Document {
   student: Types.ObjectId;
-  course: Types.ObjectId;
-  moduleId: Types.ObjectId;
-  lessonId: Types.ObjectId;
-  attemptNumber: number;
+  quizId: Types.ObjectId;
   responses: Response[];
   score: number;
   totalPoints: number;
@@ -30,24 +28,9 @@ const quizAttemptSchema: Schema<QuizAttempt> = new Schema(
       ref: "User",
       required: true,
     },
-    course: {
+    quizId: {
       type: Schema.Types.ObjectId,
-      ref: "Couse",
-      required: true,
-    },
-    moduleId: {
-      type: Schema.Types.ObjectId,
-      ref: "Module",
-      required: true,
-    },
-    lessonId: {
-      type: Schema.Types.ObjectId,
-      ref: "Lesson",
-      required: true,
-    },
-    attemptNumber: {
-      type: Number,
-      default: 1,
+      ref: "Quiz",
       required: true,
     },
     responses: [
@@ -60,31 +43,23 @@ const quizAttemptSchema: Schema<QuizAttempt> = new Schema(
           type: Number,
           required: true,
         },
-        isCorrect: {
-          type: Boolean,
-          required: true,
-        },
-        points: {
-          type: Number,
-          required: true,
-        },
+        isCorrect: Boolean,
+        points: Number,
+        explanation: String,
       },
     ],
     score: {
       type: Number,
-      required: true,
+      default: 0,
     },
     totalPoints: {
       type: Number,
-      required: true,
     },
     pointsEarned: {
       type: Number,
-      required: true,
     },
     passed: {
       type: Boolean,
-      required: true,
     },
     status: {
       type: String,

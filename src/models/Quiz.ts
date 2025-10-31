@@ -2,13 +2,13 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface Option {
   text: string;
-  isCorrect: boolean;
 }
 
 export interface Question {
   questionNo: number;
   question: string;
   options: Option[];
+  correctOption: number;
   points: number;
   explanation: string;
 }
@@ -33,9 +33,12 @@ const questionSchema: Schema<Question> = new Schema({
     type: [
       {
         text: String,
-        isCorrect: Boolean,
       },
     ],
+    required: true,
+  },
+  correctOption: {
+    type: Number,
     required: true,
   },
   points: {
