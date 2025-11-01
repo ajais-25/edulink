@@ -92,12 +92,12 @@ export async function POST(
       );
     }
 
-    const isEnrolled = await Enrollment.findOne({
+    const enrollment = await Enrollment.findOne({
       student: userId,
       course: courseId,
     });
 
-    if (!isEnrolled) {
+    if (!enrollment) {
       return Response.json(
         {
           success: false,

@@ -1,24 +1,26 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
+export interface VideoProgress {
+  watchedDuration?: number;
+  totalDuration?: number;
+  lastWatchedPosition?: number;
+}
+
 export interface CompletedLesson {
   moduleId: Types.ObjectId;
   lessonId: Types.ObjectId;
+  lessonType: "video" | "quiz";
+  videoProgress?: VideoProgress;
   completedAt?: Date;
-  score?: number; // for quizzes
-}
-
-export interface Progress {
-  completedLessons: CompletedLesson[];
-  overallProgress: number;
-  lastAccessed: Date;
 }
 
 export interface Enrollment extends Document {
-  // check
   student: Types.ObjectId;
   course: Types.ObjectId;
   status: "active" | "completed";
-  progress: Progress;
+  completedLessons: CompletedLesson[];
+  overallProgress: number;
+  lastAccessed: Date;
 }
 
 const enrollmentSchema: Schema<Enrollment> = new Schema(
@@ -38,38 +40,40 @@ const enrollmentSchema: Schema<Enrollment> = new Schema(
       enum: ["active", "completed"],
       default: "active",
     },
-    progress: {
-      completedLessons: [
-        {
-          moduleId: {
-            type: Schema.Types.ObjectId,
-            ref: "Module",
-            required: true,
-          },
-          lessonId: {
-            type: Schema.Types.ObjectId,
-            ref: "Lesson",
-            required: true,
-          },
-          completedAt: Date,
-          score: {
-            // for quizzes
-            type: Number,
-            default: 0,
-          },
+    completedLessons: [
+      {
+        moduleId: {
+          type: Schema.Types.ObjectId,
+          ref: "Module",
+          required: true,
         },
-      ],
-      overallProgress: {
-        type: Number,
-        default: 0,
-        required: true,
-        min: 0,
-        max: 100,
+        lessonId: {
+          type: Schema.Types.ObjectId,
+          ref: "Lesson",
+          required: true,
+        },
+        lessonType: {
+          type: String,
+          enum: ["video", "quiz"],
+        },
+        videoProgress: {
+          watchedDuration: Number, // uniques seconds watched
+          totalDuration: Number,
+          lastWatchedPosition: Number, // last watch position of user
+        },
+        completedAt: Date,
       },
-      lastAccessed: {
-        type: Date,
-        default: Date.now,
-      },
+    ],
+    overallProgress: {
+      type: Number,
+      default: 0,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    lastAccessed: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }

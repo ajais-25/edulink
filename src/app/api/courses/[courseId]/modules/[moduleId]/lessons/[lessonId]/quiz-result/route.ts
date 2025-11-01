@@ -8,6 +8,7 @@ import Module from "@/models/Module";
 import Quiz from "@/models/Quiz";
 import QuizAttempt from "@/models/QuizAttempt";
 import User from "@/models/User";
+import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 
 export async function POST(
@@ -93,12 +94,12 @@ export async function POST(
       );
     }
 
-    const isEnrolled = await Enrollment.findOne({
+    const enrollment = await Enrollment.findOne({
       student: userId,
       course: courseId,
     });
 
-    if (!isEnrolled) {
+    if (!enrollment) {
       return Response.json(
         {
           success: false,
@@ -149,10 +150,56 @@ export async function POST(
 
     await quizAttempt.save();
 
+    // update progress if passed
+    if (passed) {
+      const existingLessonIndex = enrollment.completedLessons.findIndex(
+        (cl) => cl.lessonId.toString() === lessonId
+      );
+
+      if (existingLessonIndex === -1) {
+        enrollment.completedLessons.push({
+          moduleId: lesson.moduleId,
+          lessonId: new mongoose.Types.ObjectId(lessonId),
+          lessonType: "quiz",
+          completedAt: new Date(),
+        });
+
+        const modules = await Module.find({ courseId });
+
+        let totalLessons = 0;
+        if (modules) {
+          for (const cModule of modules) {
+            const lessons = await Lesson.find({ moduleId: cModule._id });
+            totalLessons += lessons.length;
+          }
+        }
+
+        const completedCount = enrollment.completedLessons.filter(
+          (cl) => cl.completedAt !== undefined
+        ).length;
+
+        enrollment.overallProgress =
+          totalLessons > 0
+            ? Math.round((completedCount / totalLessons) * 100)
+            : 0;
+
+        if (
+          enrollment.overallProgress === 100 &&
+          enrollment.status === "active"
+        ) {
+          enrollment.status = "completed";
+        }
+      }
+    }
+
+    enrollment.lastAccessed = new Date();
+    await enrollment.save();
+
     return Response.json(
       {
         success: true,
         message: "Quiz submitted successfully",
+        data: quizAttempt,
       },
       { status: 200 }
     );
@@ -198,7 +245,7 @@ export async function GET(
       return Response.json(
         {
           success: false,
-          message: "You need to be an Student to submit a quiz",
+          message: "You need to be an Student for this",
         },
         { status: 403 }
       );
@@ -254,12 +301,12 @@ export async function GET(
       );
     }
 
-    const isEnrolled = await Enrollment.findOne({
+    const enrollment = await Enrollment.findOne({
       student: userId,
       course: courseId,
     });
 
-    if (!isEnrolled) {
+    if (!enrollment) {
       return Response.json(
         {
           success: false,
