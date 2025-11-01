@@ -8,6 +8,7 @@ import Quiz from "@/models/Quiz";
 import User from "@/models/User";
 import Video from "@/models/Video";
 import { NextRequest } from "next/server";
+import QuizAttempt from "@/models/QuizAttempt";
 
 export async function GET(
   request: NextRequest,
@@ -70,12 +71,21 @@ export async function GET(
       );
     }
 
+    let quizAttempts;
+    if (lesson.type === "quiz") {
+      quizAttempts = await QuizAttempt.find({ quizId: lesson.quizId }).sort({
+        createdAt: -1,
+      });
+    }
+
     console.log(lesson);
+    console.log(quizAttempts);
 
     return Response.json(
       {
         success: true,
         message: "Lesson found",
+        data: { lesson, quizAttempts },
       },
       { status: 200 }
     );
