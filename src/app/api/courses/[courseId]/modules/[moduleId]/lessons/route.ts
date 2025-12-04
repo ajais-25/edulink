@@ -76,7 +76,10 @@ export async function POST(
       );
     }
 
-    const { title, type } = await request.json();
+    const { title, type, imagekit, timeLimit, passingScore, questions } =
+      await request.json();
+
+    console.log(title, type, timeLimit, passingScore, questions);
 
     if (!title || !type) {
       return Response.json(
@@ -90,8 +93,6 @@ export async function POST(
 
     let courseLesson;
     if (type === "video") {
-      const { imagekit } = await request.json();
-
       if (!imagekit || !imagekit.url) {
         return Response.json(
           {
@@ -103,6 +104,7 @@ export async function POST(
       }
 
       courseLesson = await Lesson.create({
+        moduleId,
         title,
         type,
       });
@@ -129,6 +131,7 @@ export async function POST(
       await courseLesson.save();
     } else if (type === "quiz") {
       courseLesson = await Lesson.create({
+        moduleId,
         title,
         type,
       });
@@ -142,8 +145,6 @@ export async function POST(
           { status: 500 }
         );
       }
-
-      const { timeLimit, passingScore, questions } = await request.json();
 
       if (!timeLimit || !passingScore || !questions) {
         return Response.json(

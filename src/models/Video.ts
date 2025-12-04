@@ -36,7 +36,7 @@ const videoSchema: Schema<Video> = new Schema(
 );
 
 const Video =
-  (mongoose.models.video as mongoose.Model<Video>) ||
+  (mongoose.models.Video as mongoose.Model<Video>) ||
   mongoose.model<Video>("Video", videoSchema);
 
 export default Video;

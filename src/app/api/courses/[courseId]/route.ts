@@ -40,13 +40,31 @@ export async function GET(
       );
     }
 
-    const modules = await Module.find({ courseId }).sort({ createdAt: 1 });
+    const modules = await Module.find({ courseId })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const modulesWithLessons = await Module.aggregate([
+      {
+        $match: {
+          _id: { $in: modules.map((m) => m._id) },
+        },
+      },
+      {
+        $lookup: {
+          from: "lessons",
+          localField: "_id",
+          foreignField: "moduleId",
+          as: "lessons",
+        },
+      },
+    ]);
 
     return Response.json(
       {
         success: true,
         message: "Course fetched successfully",
-        data: { course, modules },
+        data: { course, modules: modulesWithLessons },
       },
       { status: 200 }
     );
