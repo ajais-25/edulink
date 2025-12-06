@@ -79,6 +79,6 @@ const quizAttemptSchema: Schema<QuizAttempt> = new Schema(
 
 const QuizAttempt =
   (mongoose.models.QuizAttempt as mongoose.Model<QuizAttempt>) ||
-  mongoose.model<QuizAttempt>("Quiz", quizAttemptSchema);
+  mongoose.model<QuizAttempt>("QuizAttempt", quizAttemptSchema);
 
 export default QuizAttempt;

@@ -17,12 +17,9 @@ import {
   Award,
   Check,
   Star,
-  Globe,
   PlayCircle,
-  FileText,
   Smartphone,
   Infinity,
-  Download,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import axios from "axios";
@@ -143,14 +140,12 @@ export default function CourseManagementPage() {
   };
 
   const handleUpload = async (moduleId: string) => {
-    const fileInput = fileInputRef.current;
-
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    if (!videoFile) {
       alert("Please select a file to upload");
       return;
     }
 
-    const file = fileInput.files[0];
+    const file = videoFile;
 
     let authParams;
     try {
@@ -244,7 +239,13 @@ export default function CourseManagementPage() {
 
   const handleCourseSave = async () => {
     if (editingCourse) {
-      // TODO: API call
+      try {
+        await axios.patch(`/api/courses/${courseId}`, {
+          course: editingCourse,
+        });
+      } catch (error) {
+        console.error("Error updating course:", error);
+      }
       setCourse(editingCourse);
       setIsEditingCourse(false);
       setEditingCourse(null);
@@ -334,7 +335,17 @@ export default function CourseManagementPage() {
 
   const handleModuleSave = async () => {
     if (editingModule) {
-      // TODO: API call
+      try {
+        await axios.patch(
+          `/api/courses/${courseId}/modules/${editingModule._id}`,
+          {
+            title: editingModule.title,
+          }
+        );
+      } catch (error) {
+        console.error("Error updating module:", error);
+      }
+
       setModules(
         modules.map((m) => (m._id === editingModule._id ? editingModule : m))
       );
@@ -352,7 +363,17 @@ export default function CourseManagementPage() {
 
   const handleLessonSave = async () => {
     if (editingLesson) {
-      // TODO: API call
+      try {
+        await axios.patch(
+          `/api/courses/${courseId}/modules/${editingLesson.moduleId}/lessons/${editingLesson._id}`,
+          {
+            title: editingLesson.title,
+          }
+        );
+      } catch (error) {
+        console.error("Error updating lesson:", error);
+      }
+
       setModules(
         modules.map((m) => {
           if (m._id === editingLesson.moduleId) {
@@ -420,6 +441,18 @@ export default function CourseManagementPage() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("video/")) {
+      setVideoFile(file);
+    }
+  };
+
   const saveVideoLesson = async () => {
     if (showVideoUploadModal === null) return;
     const moduleId = showVideoUploadModal;
@@ -433,12 +466,35 @@ export default function CourseManagementPage() {
   };
 
   const deleteModule = async (moduleId: string) => {
-    // TODO: API call
-    setModules(modules.filter((m) => m._id !== moduleId));
+    const moduleToDelete = modules.find((m) => m._id === moduleId);
+    const lessonCount = moduleToDelete?.lessons.length || 0;
+
+    const isConfirmed = window.confirm(
+      `Are you sure you want to delete this module? It currently has ${lessonCount} lesson${
+        lessonCount !== 1 ? "s" : ""
+      }.`
+    );
+
+    if (!isConfirmed) return;
+
+    try {
+      await axios.delete(`/api/courses/${courseId}/modules/${moduleId}`);
+      setModules(modules.filter((m) => m._id !== moduleId));
+    } catch (error) {
+      console.error("Error deleting module:", error);
+      alert("Failed to delete module");
+    }
   };
 
   const deleteLesson = async (moduleId: string, lessonId: string) => {
-    // TODO: API call
+    try {
+      await axios.delete(
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
+      );
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+    }
+
     setModules(
       modules.map((m) => {
         if (m._id === moduleId) {
@@ -742,7 +798,7 @@ export default function CourseManagementPage() {
                                           title: e.target.value,
                                         })
                                       }
-                                      className="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                                      className="flex-1 px-2 py-1 text-gray-900 bg-white border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                                     />
                                     <button
                                       onClick={handleLessonSave}
@@ -1134,6 +1190,8 @@ export default function CourseManagementPage() {
 
               {/* Upload Zone */}
               <div
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
                 className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
                   videoFile
                     ? "border-green-300 bg-green-50"

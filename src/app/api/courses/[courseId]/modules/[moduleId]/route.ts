@@ -266,19 +266,7 @@ export async function DELETE(
       );
     }
 
-    const moduleLessons = await Lesson.find({ moduleId });
-
-    if (moduleLessons.length !== 0) {
-      return Response.json(
-        {
-          success: false,
-          message: "Cannot delete a module which has lessons in it",
-        },
-        { status: 400 }
-      );
-    }
-
-    await Module.findByIdAndDelete(moduleId);
+    await courseModule.deleteOne();
 
     return Response.json(
       {
