@@ -111,6 +111,7 @@ export default function CourseManagementPage() {
 
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [priceInput, setPriceInput] = useState<string>("");
 
   // Imagekit section
   const [progress, setProgress] = useState(0);
@@ -232,6 +233,7 @@ export default function CourseManagementPage() {
   const handleCourseEdit = () => {
     if (course) {
       setEditingCourse({ ...course });
+      setPriceInput(course.price?.toString() || "");
       setThumbnailFile(null);
       setIsEditingCourse(true);
     }
@@ -241,7 +243,11 @@ export default function CourseManagementPage() {
     if (editingCourse) {
       try {
         await axios.patch(`/api/courses/${courseId}`, {
-          course: editingCourse,
+          title: editingCourse.title,
+          description: editingCourse.description,
+          category: editingCourse.category,
+          level: editingCourse.level,
+          price: editingCourse.price,
         });
       } catch (error) {
         console.error("Error updating course:", error);
@@ -249,6 +255,7 @@ export default function CourseManagementPage() {
       setCourse(editingCourse);
       setIsEditingCourse(false);
       setEditingCourse(null);
+      setPriceInput("");
       setThumbnailFile(null);
     }
   };
@@ -256,6 +263,7 @@ export default function CourseManagementPage() {
   const handleCourseCancel = () => {
     setIsEditingCourse(false);
     setEditingCourse(null);
+    setPriceInput("");
     setThumbnailFile(null);
   };
 
@@ -662,7 +670,7 @@ export default function CourseManagementPage() {
                   <h2 className="text-xl font-bold text-gray-900">
                     Course Content
                   </h2>
-                  {isInstructor && isEditingCourse && (
+                  {isInstructor && (
                     <button
                       onClick={addModule}
                       className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -747,30 +755,28 @@ export default function CourseManagementPage() {
                           )}
                         </div>
 
-                        {!isEditingThisModule &&
-                          isInstructor &&
-                          isEditingCourse && (
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleModuleEdit(module._id);
-                                }}
-                                className="p-1.5 hover:bg-white rounded-md text-gray-600 cursor-pointer"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </div>
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteModule(module._id);
-                                }}
-                                className="p-1.5 hover:bg-red-100 rounded-md text-red-600 cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </div>
+                        {!isEditingThisModule && isInstructor && (
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleModuleEdit(module._id);
+                              }}
+                              className="p-1.5 hover:bg-white rounded-md text-gray-600 cursor-pointer"
+                            >
+                              <Edit2 className="w-4 h-4" />
                             </div>
-                          )}
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteModule(module._id);
+                              }}
+                              className="p-1.5 hover:bg-red-100 rounded-md text-red-600 cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {expandedModules.includes(module._id) && (
@@ -829,7 +835,7 @@ export default function CourseManagementPage() {
                                     10:00
                                   </span>
                                 )}
-                                {isInstructor && isEditingCourse && (
+                                {isInstructor && (
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                       onClick={() =>
@@ -853,7 +859,7 @@ export default function CourseManagementPage() {
                             </div>
                           ))}
 
-                          {isInstructor && isEditingCourse && (
+                          {isInstructor && (
                             <button
                               onClick={() => openLessonTypeModal(module._id)}
                               className="w-full py-3 flex items-center justify-center gap-2 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors"
@@ -963,17 +969,20 @@ export default function CourseManagementPage() {
                         </span>
                         <input
                           type="number"
-                          value={editingCourse?.price || 0}
-                          onChange={(e) =>
+                          value={priceInput}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPriceInput(val);
                             setEditingCourse(
                               editingCourse
                                 ? {
                                     ...editingCourse,
-                                    price: parseFloat(e.target.value),
+                                    price:
+                                      val === "" ? 0 : parseFloat(val) || 0,
                                   }
                                 : null
-                            )
-                          }
+                            );
+                          }}
                           className="w-32 text-3xl font-bold text-gray-900 border-b-2 border-blue-500 focus:outline-none"
                         />
                       </div>
