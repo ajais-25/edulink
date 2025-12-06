@@ -52,7 +52,6 @@ export async function POST(request: Request) {
 
     await passwordReset.save();
 
-    // TODO: send password reset email
     await sendForgotPasswordEmail(email, resetLink, "15 minutes");
 
     return Response.json(

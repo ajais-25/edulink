@@ -6,6 +6,11 @@ interface Thumbnail {
   url: string;
 }
 
+interface Rating {
+  userId: string;
+  rating: number;
+}
+
 export interface Course {
   _id: string;
   title: string;
@@ -16,7 +21,7 @@ export interface Course {
   price: number;
   isPublished: boolean;
   enrollmentCount: number;
-  rating: number;
+  ratings: Rating[];
 }
 
 interface CourseCardProps {
@@ -51,7 +56,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     : "bg-red-50 text-red-600"
               }`}
             >
-              {course.level}
+              {course.level.slice(0, 1).toUpperCase() + course.level.slice(1)}
             </span>
           </div>
 
@@ -71,7 +76,16 @@ export default function CourseCard({ course }: CourseCardProps) {
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span>{course.rating}</span>
+                <span>
+                  {course.ratings && course.ratings.length > 0
+                    ? (
+                        course.ratings.reduce(
+                          (acc, curr) => acc + curr.rating,
+                          0
+                        ) / course.ratings.length
+                      ).toFixed(1)
+                    : "0.0"}
+                </span>
               </div>
             </div>
             <div className="text-lg font-bold text-gray-900">

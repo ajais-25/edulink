@@ -41,22 +41,22 @@ interface Thumbnail {
 }
 
 interface Rating {
-  average?: number;
-  count?: number;
+  userId: string;
+  rating: number;
 }
 
 interface Course {
   _id: string;
   title: string;
   description: string;
-  instructor: string;
+  instructor: { name: string };
   thumbnail: Thumbnail;
   category: string;
   level: "beginner" | "intermediate" | "advanced";
   price: number;
   isPublished: boolean;
   enrollmentCount: number;
-  rating?: Rating;
+  ratings: Rating[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -116,70 +116,42 @@ export default function CourseManagementPage() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   // Imagekit section
-
-  // State to keep track of the current upload progress (percentage)
   const [progress, setProgress] = useState(0);
 
-  // Create a ref for the file input element to access its files easily
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Create an AbortController instance to provide an option to cancel the upload if needed.
   const abortController = new AbortController();
 
-  /**
-   * Authenticates and retrieves the necessary upload credentials from the server.
-   *
-   * This function calls the authentication API endpoint to receive upload parameters like signature,
-   * expire time, token, and publicKey.
-   *
-   * @returns {Promise<{signature: string, expire: string, token: string, publicKey: string}>} The authentication parameters.
-   * @throws {Error} Throws an error if the authentication request fails.
-   */
   const authenticator = async () => {
     try {
-      // Perform the request to the upload authentication endpoint.
       const response = await fetch("/api/imagekit-auth");
+
       if (!response.ok) {
-        // If the server response is not successful, extract the error text for debugging.
         const errorText = await response.text();
         throw new Error(
           `Request failed with status ${response.status}: ${errorText}`
         );
       }
 
-      // Parse and destructure the response JSON for upload credentials.
       const data = await response.json();
       const { signature, expire, token, publicKey } = data;
       return { signature, expire, token, publicKey };
     } catch (error) {
-      // Log the original error for debugging before rethrowing a new error.
       console.error("Authentication error:", error);
       throw new Error("Authentication request failed");
     }
   };
 
-  /**
-   * Handles the file upload process.
-   *
-   * This function:
-   * - Validates file selection.
-   * - Retrieves upload authentication credentials.
-   * - Initiates the file upload via the ImageKit SDK.
-   * - Updates the upload progress.
-   * - Catches and processes errors accordingly.
-   */
   const handleUpload = async (moduleId: string) => {
-    // Access the file input element using the ref
     const fileInput = fileInputRef.current;
+
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
       alert("Please select a file to upload");
       return;
     }
 
-    // Extract the first file from the file input
     const file = fileInput.files[0];
 
-    // Retrieve authentication parameters for the upload.
     let authParams;
     try {
       authParams = await authenticator();
@@ -189,21 +161,17 @@ export default function CourseManagementPage() {
     }
     const { signature, expire, token, publicKey } = authParams;
 
-    // Call the ImageKit SDK upload function with the required parameters and callbacks.
     try {
       const uploadResponse = await upload({
-        // Authentication parameters
         expire,
         token,
         signature,
         publicKey,
         file,
-        fileName: file.name, // Optionally set a custom file name
-        // Progress callback to update upload progress state
+        fileName: file.name,
         onProgress: (event) => {
           setProgress((event.loaded / event.total) * 100);
         },
-        // Abort signal to allow cancellation of the upload if needed.
         abortSignal: abortController.signal,
       });
       console.log("Upload response:", uploadResponse);
@@ -221,7 +189,6 @@ export default function CourseManagementPage() {
 
       console.log(response);
     } catch (error) {
-      // Handle specific error types provided by the ImageKit SDK.
       if (error instanceof ImageKitAbortError) {
         console.error("Upload aborted:", error.reason);
       } else if (error instanceof ImageKitInvalidRequestError) {
@@ -231,7 +198,6 @@ export default function CourseManagementPage() {
       } else if (error instanceof ImageKitServerError) {
         console.error("Server error:", error.message);
       } else {
-        // Handle any other errors that may occur.
         console.error("Upload error:", error);
       }
     }
@@ -299,11 +265,9 @@ export default function CourseManagementPage() {
     if (!file) return;
 
     try {
-      // 1. Authenticate
       const authParams = await authenticator();
       const { signature, expire, token, publicKey } = authParams;
 
-      // 2. Upload to ImageKit
       setIsUploadingThumbnail(true);
       const uploadResponse = await upload({
         file,
@@ -319,7 +283,6 @@ export default function CourseManagementPage() {
         },
       });
 
-      // 3. Update Course via API
       const newThumbnail: Thumbnail = {
         fileId: uploadResponse.fileId as string,
         url: uploadResponse.url as string,
@@ -329,7 +292,6 @@ export default function CourseManagementPage() {
         imagekit: uploadResponse,
       });
 
-      // 4. Update Local State
       if (course) {
         setCourse({ ...course, thumbnail: newThumbnail });
       }
@@ -487,14 +449,13 @@ export default function CourseManagementPage() {
     );
   };
 
-  const isInstructor = true; // Mock flag for instructor view
+  const isInstructor = true; // TODO: Remove this later
 
-  // Calculate total lessons and duration (mock duration)
   const totalLessons = modules.reduce(
     (acc, module) => acc + module.lessons.length,
     0
   );
-  const totalDuration = "12h 30m"; // This would typically be calculated from actual lesson durations
+  const totalDuration = "12h 30m";
 
   if (loading || !course) {
     return (
@@ -535,7 +496,16 @@ export default function CourseManagementPage() {
 
               <div className="flex flex-wrap items-center gap-6 text-sm">
                 <div className="flex items-center gap-1 text-yellow-400">
-                  <span className="font-bold">4.8</span>
+                  <span className="font-bold">
+                    {displayCourse.ratings && displayCourse.ratings.length > 0
+                      ? (
+                          displayCourse.ratings.reduce(
+                            (acc, curr) => acc + curr.rating,
+                            0
+                          ) / displayCourse.ratings.length
+                        ).toFixed(1)
+                      : "0.0"}
+                  </span>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -546,17 +516,13 @@ export default function CourseManagementPage() {
                     ))}
                   </div>
                   <span className="text-blue-200 underline ml-1">
-                    (1,245 ratings)
+                    ({displayCourse.ratings?.length || 0} ratings)
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-gray-300">
                   <span className="font-medium">
                     {displayCourse.enrollmentCount.toLocaleString()} students
                   </span>
-                </div>
-                <div className="flex items-center gap-1 text-gray-300">
-                  <Globe className="w-4 h-4" />
-                  <span>English</span>
                 </div>
               </div>
 
@@ -570,14 +536,39 @@ export default function CourseManagementPage() {
                   <div>
                     <p className="text-sm text-gray-400">Created by</p>
                     <p className="text-blue-300 font-medium hover:underline cursor-pointer">
-                      John Doe
+                      {displayCourse.instructor?.name || "Unknown Instructor"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-gray-400 text-sm ml-4">
                   <Clock className="w-4 h-4" />
-                  <span>Last updated 11/2024</span>
+                  <span>
+                    Last updated{" "}
+                    {displayCourse.updatedAt
+                      ? new Date(displayCourse.updatedAt).toLocaleDateString(
+                          "en-GB"
+                        )
+                      : "Recently"}
+                  </span>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white">
+                  {displayCourse.category}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    displayCourse.level.toLowerCase() === "beginner"
+                      ? "bg-green-600 text-white"
+                      : displayCourse.level.toLowerCase() === "intermediate"
+                        ? "bg-yellow-600 text-white"
+                        : "bg-red-600 text-white"
+                  }`}
+                >
+                  {displayCourse.level.charAt(0).toUpperCase() +
+                    displayCourse.level.slice(1)}
+                </span>
               </div>
             </div>
           </div>
@@ -866,47 +857,6 @@ export default function CourseManagementPage() {
               </h2>
               <div className="prose max-w-none text-gray-700">
                 {displayCourse.description}
-              </div>
-            </div>
-
-            {/* Instructor */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Instructor
-              </h2>
-              <div className="flex gap-4">
-                <img
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-                  alt="Instructor"
-                  className="w-16 h-16 rounded-full border-2 border-gray-100"
-                />
-                <div>
-                  <h3 className="text-lg font-bold text-blue-600 hover:underline cursor-pointer">
-                    John Doe
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    Senior Web Developer & Instructor
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-current text-yellow-500" />
-                      <span>4.8 Rating</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Award className="w-4 h-4" />
-                      <span>15,000+ Students</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <PlayCircle className="w-4 h-4" />
-                      <span>12 Courses</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm mt-3">
-                    John is a specialist in web development with over 10 years
-                    of experience. He has taught thousands of students how to
-                    code and build real-world applications.
-                  </p>
-                </div>
               </div>
             </div>
           </div>

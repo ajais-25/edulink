@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
 
     const resetDate = new Date().toLocaleString();
 
-    // TODO: send email on successful password reset
     await sendPasswordResetConfirmationEmail(
       user.name,
       user.email,

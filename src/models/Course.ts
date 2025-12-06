@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface Rating {
-  average?: number;
-  count?: number;
+  userId: Types.ObjectId;
+  rating: number;
 }
 
 export interface Thumbnail {
@@ -20,7 +20,7 @@ export interface Course extends Document {
   price: number;
   isPublished: boolean;
   enrollmentCount: number;
-  rating?: Rating;
+  ratings: Rating[];
 }
 
 const courseSchema: Schema<Course> = new Schema(
@@ -71,10 +71,19 @@ const courseSchema: Schema<Course> = new Schema(
       required: true,
       default: 0,
     },
-    rating: {
-      average: Number,
-      count: Number,
-    },
+    ratings: [
+      {
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

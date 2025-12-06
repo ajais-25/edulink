@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
 import Module from "@/models/Module";
 import User from "@/models/User";
+import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -28,7 +29,32 @@ export async function GET(
 
     const { courseId } = params;
 
-    const course = await Course.findById(courseId);
+    const course = await Course.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(courseId),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "instructor",
+          foreignField: "_id",
+          as: "instructor",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: "$instructor",
+      },
+    ]);
 
     if (!course) {
       return Response.json(
@@ -64,7 +90,7 @@ export async function GET(
       {
         success: true,
         message: "Course fetched successfully",
-        data: { course, modules: modulesWithLessons },
+        data: { course: course[0], modules: modulesWithLessons },
       },
       { status: 200 }
     );

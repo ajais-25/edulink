@@ -22,7 +22,6 @@ export interface User extends Document {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
-  courses: Types.ObjectId[];
 }
 
 const userSchema: Schema<User> = new Schema(
@@ -66,12 +65,6 @@ const userSchema: Schema<User> = new Schema(
       required: true,
       default: false,
     },
-    courses: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Course",
-      },
-    ],
   },
   { timestamps: true }
 );

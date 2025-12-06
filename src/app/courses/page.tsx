@@ -21,7 +21,10 @@ export default function CoursesPage() {
       price: 3999,
       isPublished: true,
       enrollmentCount: 1234,
-      rating: 4.5,
+      ratings: [
+        { userId: "u1", rating: 5 },
+        { userId: "u2", rating: 4 },
+      ],
     },
     {
       _id: "2",
@@ -36,7 +39,7 @@ export default function CoursesPage() {
       price: 7999,
       isPublished: true,
       enrollmentCount: 856,
-      rating: 4.5,
+      ratings: [],
     },
     {
       _id: "3",
@@ -51,7 +54,7 @@ export default function CoursesPage() {
       price: 6499,
       isPublished: false,
       enrollmentCount: 0,
-      rating: 4.5,
+      ratings: [],
     },
   ]);
 
