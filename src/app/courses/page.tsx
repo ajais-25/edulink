@@ -82,8 +82,8 @@ export default function CoursesPage() {
   };
 
   const filteredCourses = courses.filter((course) => {
+    if (!course || !course.title) return false;
     const matchesSearch = course.title
-      .toLowerCase()
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesLevel =

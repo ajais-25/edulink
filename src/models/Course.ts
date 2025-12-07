@@ -18,6 +18,7 @@ export interface Course extends Document {
   category: string;
   level: "beginner" | "intermediate" | "advanced";
   price: number;
+  learnings: string[];
   isPublished: boolean;
   enrollmentCount: number;
   ratings: Rating[];
@@ -59,6 +60,10 @@ const courseSchema: Schema<Course> = new Schema(
     },
     price: {
       type: Number,
+      required: true,
+    },
+    learnings: {
+      type: [String],
       required: true,
     },
     isPublished: {

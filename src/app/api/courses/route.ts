@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
       category,
       level,
       price,
+      learnings,
       isPublished,
       imagekit,
     } = await request.json();
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
       !category ||
       !level ||
       !price ||
+      !learnings ||
       isPublished === undefined
     ) {
       return Response.json(
@@ -139,6 +141,7 @@ export async function POST(request: NextRequest) {
       category,
       level,
       price,
+      learnings,
       isPublished,
     });
 

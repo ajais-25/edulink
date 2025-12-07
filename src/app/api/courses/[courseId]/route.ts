@@ -29,6 +29,18 @@ export async function GET(
 
     const { courseId } = params;
 
+    const isExistingCourse = await Course.findById(courseId);
+
+    if (!isExistingCourse) {
+      return Response.json(
+        {
+          success: false,
+          message: "Course not found",
+        },
+        { status: 404 }
+      );
+    }
+
     const course = await Course.aggregate([
       {
         $match: {
@@ -55,16 +67,6 @@ export async function GET(
         $unwind: "$instructor",
       },
     ]);
-
-    if (!course) {
-      return Response.json(
-        {
-          success: false,
-          message: "Course not found",
-        },
-        { status: 404 }
-      );
-    }
 
     const modules = await Module.find({ courseId })
       .sort({ createdAt: 1 })
@@ -161,9 +163,12 @@ export async function PATCH(
       );
     }
 
-    const { title, description, category, level, price } = await request.json();
+    const { title, description, category, level, price, learnings } =
+      await request.json();
 
-    if (!title || !description || !category || !level || !price) {
+    console.log(title, description, category, level, price, learnings);
+
+    if (!title || !description || !category || !level || !price || !learnings) {
       return Response.json(
         {
           success: false,
@@ -196,6 +201,7 @@ export async function PATCH(
         category,
         level,
         price,
+        learnings,
       },
       { new: true }
     );

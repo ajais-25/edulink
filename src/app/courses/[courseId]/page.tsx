@@ -54,6 +54,7 @@ interface Course {
   isPublished: boolean;
   enrollmentCount: number;
   ratings: Rating[];
+  learnings: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -112,6 +113,13 @@ export default function CourseManagementPage() {
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [priceInput, setPriceInput] = useState<string>("");
+
+  // Learnings state
+  const [newLearning, setNewLearning] = useState("");
+  const [editingLearningIndex, setEditingLearningIndex] = useState<
+    number | null
+  >(null);
+  const [editingLearningText, setEditingLearningText] = useState("");
 
   // Imagekit section
   const [progress, setProgress] = useState(0);
@@ -248,6 +256,7 @@ export default function CourseManagementPage() {
           category: editingCourse.category,
           level: editingCourse.level,
           price: editingCourse.price,
+          learnings: editingCourse.learnings,
         });
       } catch (error) {
         console.error("Error updating course:", error);
@@ -513,8 +522,97 @@ export default function CourseManagementPage() {
     );
   };
 
-  const isInstructor = true; // TODO: Remove this later
+  const handleAddLearning = async () => {
+    if (!newLearning.trim() || !course) return;
 
+    const updatedLearnings = [...(course.learnings || []), newLearning.trim()];
+
+    // Optimistic update
+    const updatedCourse = { ...course, learnings: updatedLearnings };
+    setCourse(updatedCourse);
+    setNewLearning("");
+
+    // Also update editing course if it's active
+    if (editingCourse) {
+      setEditingCourse({ ...editingCourse, learnings: updatedLearnings });
+    }
+
+    try {
+      await axios.patch(`/api/courses/${courseId}`, {
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        level: course.level,
+        price: course.price,
+        learnings: updatedLearnings,
+      });
+    } catch (error) {
+      console.error("Error updating learnings:", error);
+      // Revert on error (optional but good practice)
+      // setCourse(course);
+    }
+  };
+
+  const handleUpdateLearning = async (index: number) => {
+    if (!editingLearningText.trim() || !course) return;
+
+    const updatedLearnings = [...(course.learnings || [])];
+    updatedLearnings[index] = editingLearningText.trim();
+
+    // Optimistic update
+    const updatedCourse = { ...course, learnings: updatedLearnings };
+    setCourse(updatedCourse);
+    setEditingLearningIndex(null);
+    setEditingLearningText("");
+
+    if (editingCourse) {
+      setEditingCourse({ ...editingCourse, learnings: updatedLearnings });
+    }
+
+    try {
+      await axios.patch(`/api/courses/${courseId}`, {
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        level: course.level,
+        price: course.price,
+        learnings: updatedLearnings,
+      });
+    } catch (error) {
+      console.error("Error updating learnings:", error);
+    }
+  };
+
+  const handleDeleteLearning = async (index: number) => {
+    if (!course) return;
+
+    const updatedLearnings = (course.learnings || []).filter(
+      (_, i) => i !== index
+    );
+
+    // Optimistic update
+    const updatedCourse = { ...course, learnings: updatedLearnings };
+    setCourse(updatedCourse);
+
+    if (editingCourse) {
+      setEditingCourse({ ...editingCourse, learnings: updatedLearnings });
+    }
+
+    try {
+      await axios.patch(`/api/courses/${courseId}`, {
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        level: course.level,
+        price: course.price,
+        learnings: updatedLearnings,
+      });
+    } catch (error) {
+      console.error("Error updating learnings:", error);
+    }
+  };
+
+  const isInstructor = true; // TODO: Remove this later
   const totalLessons = modules.reduce(
     (acc, module) => acc + module.lessons.length,
     0
@@ -649,18 +747,87 @@ export default function CourseManagementPage() {
                 What you'll learn
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {[
-                  "Build full-stack web applications",
-                  "Master React and Node.js",
-                  "Deploy applications to the cloud",
-                  "Implement secure authentication",
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-gray-900 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 text-sm">{item}</span>
+                {(displayCourse.learnings || []).map((item, i) => (
+                  <div key={i} className="flex items-start gap-2 group">
+                    {editingLearningIndex === i ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="text"
+                          value={editingLearningText}
+                          onChange={(e) =>
+                            setEditingLearningText(e.target.value)
+                          }
+                          className="flex-1 px-2 py-1 text-sm text-gray-900 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleUpdateLearning(i);
+                            if (e.key === "Escape")
+                              setEditingLearningIndex(null);
+                          }}
+                        />
+                        <button
+                          onClick={() => handleUpdateLearning(i)}
+                          className="p-1 text-green-600 hover:bg-green-50 rounded"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingLearningIndex(null)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Check className="w-5 h-5 text-gray-900 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700 text-sm flex-1">
+                          {item}
+                        </span>
+                        {isInstructor && !isEditingCourse && (
+                          <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingLearningIndex(i);
+                                setEditingLearningText(item);
+                              }}
+                              className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteLearning(i)}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
+
+              {isInstructor && !isEditingCourse && (
+                <div className="mt-4 flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add a new learning outcome..."
+                    value={newLearning}
+                    onChange={(e) => setNewLearning(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddLearning()}
+                    className="flex-1 px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <button
+                    onClick={handleAddLearning}
+                    disabled={!newLearning.trim()}
+                    className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Course Content */}

@@ -31,6 +31,7 @@ interface FormData {
   level: "beginner" | "intermediate" | "advanced";
   price: string;
   isPublished: boolean;
+  learnings: string[];
 }
 
 export default function CreateCourseModal({
@@ -55,7 +56,9 @@ export default function CreateCourseModal({
     level: "beginner",
     price: "",
     isPublished: false,
+    learnings: [],
   });
+  const [currentLearning, setCurrentLearning] = useState("");
 
   if (!isOpen) return null;
 
@@ -160,6 +163,7 @@ export default function CreateCourseModal({
         level: formData.level,
         price: Number(formData.price),
         isPublished: formData.isPublished,
+        learnings: formData.learnings,
         imagekit: uploadResponse,
       };
 
@@ -177,7 +181,9 @@ export default function CreateCourseModal({
         level: "beginner",
         price: "",
         isPublished: false,
+        learnings: [],
       });
+      setCurrentLearning("");
     } catch (error) {
       if (error instanceof ImageKitAbortError) {
         console.error("Upload aborted:", error.reason);
@@ -317,6 +323,87 @@ export default function CreateCourseModal({
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  What will students learn?{" "}
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={currentLearning}
+                    onChange={(e) => setCurrentLearning(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (currentLearning.trim()) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            learnings: [
+                              ...prev.learnings,
+                              currentLearning.trim(),
+                            ],
+                          }));
+                          setCurrentLearning("");
+                        }
+                      }
+                    }}
+                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 text-gray-900 transition-all bg-gray-50 focus:bg-white"
+                    placeholder="Add a key learning outcome..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentLearning.trim()) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          learnings: [
+                            ...prev.learnings,
+                            currentLearning.trim(),
+                          ],
+                        }));
+                        setCurrentLearning("");
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {formData.learnings.map((learning, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg group"
+                    >
+                      <span className="flex-1 text-sm text-gray-700">
+                        {learning}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            learnings: prev.learnings.filter(
+                              (_, i) => i !== index
+                            ),
+                          }));
+                        }}
+                        className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {formData.learnings.length === 0 && (
+                    <p className="text-sm text-gray-500 italic">
+                      No learnings added yet.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Right Column - Media & Settings */}
@@ -368,6 +455,20 @@ export default function CreateCourseModal({
                     </div>
                   )}
                 </div>
+                {loading && progress > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>Uploading thumbnail...</span>
+                      <span>{Math.round(progress)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-full transition-all duration-300 ease-out"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
