@@ -21,7 +21,7 @@ import {
   Smartphone,
   Infinity,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import {
   ImageKitAbortError,
@@ -30,7 +30,6 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
-import QuizModal from "@/components/QuizModal";
 
 interface Thumbnail {
   fileId: string;
@@ -87,6 +86,9 @@ interface EditingLesson extends Lesson {
 
 export default function CourseManagementPage() {
   const { courseId } = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const expandedModuleId = searchParams.get("expandedModule");
 
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<UIModule[]>([]);
@@ -106,7 +108,6 @@ export default function CourseManagementPage() {
   const [showVideoUploadModal, setShowVideoUploadModal] = useState<
     string | null
   >(null);
-  const [showQuizModal, setShowQuizModal] = useState<string | null>(null);
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoTitle, setVideoTitle] = useState<string>("");
@@ -114,6 +115,7 @@ export default function CourseManagementPage() {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [priceInput, setPriceInput] = useState<string>("");
 
@@ -158,12 +160,14 @@ export default function CourseManagementPage() {
     }
 
     const file = videoFile;
+    setIsUploading(true);
 
     let authParams;
     try {
       authParams = await authenticator();
     } catch (authError) {
       console.error("Failed to authenticate for upload:", authError);
+      setIsUploading(false);
       return;
     }
     const { signature, expire, token, publicKey } = authParams;
@@ -195,6 +199,13 @@ export default function CourseManagementPage() {
       );
 
       console.log(response);
+
+      // Close modal and refresh data silently
+      setShowVideoUploadModal(null);
+      setVideoFile(null);
+      setVideoTitle("");
+      setProgress(0);
+      fetchData(false);
     } catch (error) {
       if (error instanceof ImageKitAbortError) {
         console.error("Upload aborted:", error.reason);
@@ -207,12 +218,15 @@ export default function CourseManagementPage() {
       } else {
         console.error("Upload error:", error);
       }
+      alert("Failed to upload video. Please try again.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await axios.get(`/api/courses/${courseId}`);
 
       const fetchedCourse = res.data.data.course;
@@ -223,7 +237,7 @@ export default function CourseManagementPage() {
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -232,6 +246,15 @@ export default function CourseManagementPage() {
       fetchData();
     }
   }, [courseId]);
+
+  useEffect(() => {
+    if (expandedModuleId) {
+      setExpandedModules((prev) =>
+        prev.includes(expandedModuleId) ? prev : [...prev, expandedModuleId]
+      );
+      // Optional: scroll to module
+    }
+  }, [expandedModuleId]);
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules((prev) =>
@@ -449,7 +472,9 @@ export default function CourseManagementPage() {
       setVideoTitle("");
       setShowVideoUploadModal(showLessonTypeModal);
     } else {
-      setShowQuizModal(showLessonTypeModal);
+      router.push(
+        `/courses/${courseId}/create-quiz?moduleId=${showLessonTypeModal}`
+      );
     }
     setShowLessonTypeModal(null);
   };
@@ -1459,7 +1484,8 @@ export default function CourseManagementPage() {
                   value={videoTitle}
                   onChange={(e) => setVideoTitle(e.target.value)}
                   placeholder="e.g., Introduction to React Hooks"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-400 transition-all"
+                  disabled={isUploading}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-400 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -1468,9 +1494,11 @@ export default function CourseManagementPage() {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
-                  videoFile
-                    ? "border-green-300 bg-green-50"
-                    : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
+                  isUploading
+                    ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                    : videoFile
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
                 }`}
               >
                 {!videoFile ? (
@@ -1509,22 +1537,26 @@ export default function CourseManagementPage() {
                         {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </div>
-                    <button
-                      onClick={() => setVideoFile(null)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    {!isUploading && (
+                      <button
+                        onClick={() => setVideoFile(null)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Progress bar (shows during upload) */}
-              {progress > 0 && progress < 100 && (
+              {(isUploading || progress > 0) && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 font-medium">
-                      Uploading...
+                      {isUploading
+                        ? "Uploading & Processing..."
+                        : "Upload complete"}
                     </span>
                     <span className="text-blue-600 font-semibold">
                       {Math.round(progress)}%
@@ -1546,15 +1578,24 @@ export default function CourseManagementPage() {
                 onClick={() =>
                   showVideoUploadModal && handleUpload(showVideoUploadModal)
                 }
-                disabled={!videoFile || !videoTitle}
+                disabled={!videoFile || !videoTitle || isUploading}
                 className={`flex-1 px-5 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                  videoFile && videoTitle
+                  videoFile && videoTitle && !isUploading
                     ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md shadow-green-200"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                <Save className="w-4 h-4" />
-                Save Video Lesson
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Video Lesson
+                  </>
+                )}
               </button>
               <button
                 onClick={() => {
@@ -1562,7 +1603,8 @@ export default function CourseManagementPage() {
                   setVideoFile(null);
                   setVideoTitle("");
                 }}
-                className="px-5 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
+                disabled={isUploading}
+                className="px-5 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -1570,14 +1612,6 @@ export default function CourseManagementPage() {
           </div>
         </div>
       )}
-
-      <QuizModal
-        isOpen={!!showQuizModal}
-        onClose={() => setShowQuizModal(null)}
-        moduleId={showQuizModal || ""}
-        courseId={courseId as string}
-        onSave={fetchData}
-      />
     </div>
   );
 }
