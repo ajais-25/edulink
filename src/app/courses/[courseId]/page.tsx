@@ -72,6 +72,9 @@ interface Lesson {
   type: "video" | "quiz";
   videoId?: string;
   quizId?: string;
+  video?: {
+    duration: number;
+  };
 }
 
 interface UIModule extends Module {
@@ -617,7 +620,43 @@ export default function CourseManagementPage() {
     (acc, module) => acc + module.lessons.length,
     0
   );
-  const totalDuration = "12h 30m";
+  const totalDuration = modules.reduce((total, module) => {
+    return (
+      total +
+      module.lessons.reduce((moduleTotal, lesson) => {
+        return moduleTotal + (lesson.video?.duration || 0);
+      }, 0)
+    );
+  }, 0);
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const formatTotalDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    }
+    return `${secs}s`;
+  };
 
   if (loading || !course) {
     return (
@@ -716,21 +755,62 @@ export default function CourseManagementPage() {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white">
-                  {displayCourse.category}
-                </span>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    displayCourse.level.toLowerCase() === "beginner"
-                      ? "bg-green-600 text-white"
-                      : displayCourse.level.toLowerCase() === "intermediate"
-                        ? "bg-yellow-600 text-white"
-                        : "bg-red-600 text-white"
-                  }`}
-                >
-                  {displayCourse.level.charAt(0).toUpperCase() +
-                    displayCourse.level.slice(1)}
-                </span>
+                {isEditingCourse ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editingCourse?.category || ""}
+                      onChange={(e) =>
+                        setEditingCourse(
+                          editingCourse
+                            ? { ...editingCourse, category: e.target.value }
+                            : null
+                        )
+                      }
+                      className="px-3 py-1 rounded text-xs font-semibold bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Category"
+                    />
+                    <select
+                      value={editingCourse?.level || "beginner"}
+                      onChange={(e) =>
+                        setEditingCourse(
+                          editingCourse
+                            ? {
+                                ...editingCourse,
+                                level: e.target.value as
+                                  | "beginner"
+                                  | "intermediate"
+                                  | "advanced",
+                              }
+                            : null
+                        )
+                      }
+                      className="px-3 py-1 rounded text-xs font-semibold bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                ) : (
+                  <>
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white">
+                      {displayCourse.category}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        displayCourse.level.toLowerCase() === "beginner"
+                          ? "bg-green-600 text-white"
+                          : displayCourse.level.toLowerCase() === "intermediate"
+                            ? "bg-yellow-600 text-white"
+                            : "bg-red-600 text-white"
+                      }`}
+                    >
+                      {displayCourse.level.charAt(0).toUpperCase() +
+                        displayCourse.level.slice(1)}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -852,7 +932,7 @@ export default function CourseManagementPage() {
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>{totalLessons} lectures</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span>{totalDuration} total length</span>
+                  <span>{formatTotalDuration(totalDuration)} total length</span>
                 </div>
               </div>
 
@@ -999,7 +1079,9 @@ export default function CourseManagementPage() {
                               <div className="flex items-center gap-4">
                                 {lesson.type === "video" && (
                                   <span className="text-xs text-gray-500">
-                                    10:00
+                                    {formatDuration(
+                                      lesson.video?.duration as number
+                                    ) || "00:00"}
                                   </span>
                                 )}
                                 {isInstructor && (
@@ -1084,9 +1166,24 @@ export default function CourseManagementPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">
                 Description
               </h2>
-              <div className="prose max-w-none text-gray-700">
-                {displayCourse.description}
-              </div>
+              {isEditingCourse ? (
+                <textarea
+                  value={editingCourse?.description || ""}
+                  onChange={(e) =>
+                    setEditingCourse(
+                      editingCourse
+                        ? { ...editingCourse, description: e.target.value }
+                        : null
+                    )
+                  }
+                  className="w-full h-40 p-4 text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-y"
+                  placeholder="Enter course description..."
+                />
+              ) : (
+                <div className="prose max-w-none text-gray-700">
+                  {displayCourse.description}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1209,7 +1306,9 @@ export default function CourseManagementPage() {
                     <ul className="space-y-3">
                       <li className="flex items-center gap-3 text-sm text-gray-600">
                         <Video className="w-5 h-5 text-gray-400" />
-                        <span>{totalDuration} on-demand video</span>
+                        <span>
+                          {formatTotalDuration(totalDuration)} on-demand video
+                        </span>
                       </li>
                       <li className="flex items-center gap-3 text-sm text-gray-600">
                         <Smartphone className="w-5 h-5 text-gray-400" />

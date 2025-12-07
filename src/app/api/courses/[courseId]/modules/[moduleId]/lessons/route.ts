@@ -79,8 +79,6 @@ export async function POST(
     const { title, type, imagekit, timeLimit, passingScore, questions } =
       await request.json();
 
-    console.log(title, type, timeLimit, passingScore, questions);
-
     if (!title || !type) {
       return Response.json(
         {

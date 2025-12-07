@@ -83,6 +83,30 @@ export async function GET(
           from: "lessons",
           localField: "_id",
           foreignField: "moduleId",
+          pipeline: [
+            {
+              $lookup: {
+                from: "videos",
+                localField: "videoId",
+                foreignField: "_id",
+                as: "video",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 0,
+                      duration: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$video",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
           as: "lessons",
         },
       },
