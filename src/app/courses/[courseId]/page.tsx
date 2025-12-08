@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import {
+  ArrowLeft,
   ChevronDown,
   ChevronRight,
   Edit2,
@@ -699,6 +700,13 @@ export default function CourseManagementPage() {
       {/* Hero Section */}
       <div className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12 lg:py-16">
+          <button
+            onClick={() => router.push("/courses")}
+            className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-2/3 space-y-6">
               {isEditingCourse ? (
@@ -872,13 +880,13 @@ export default function CourseManagementPage() {
                         />
                         <button
                           onClick={() => handleUpdateLearning(i)}
-                          className="p-1 text-green-600 hover:bg-green-50 rounded"
+                          className="p-1 text-green-600 hover:bg-green-50 rounded cursor-pointer"
                         >
                           <Check className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setEditingLearningIndex(null)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1 text-red-600 hover:bg-red-50 rounded cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -896,13 +904,13 @@ export default function CourseManagementPage() {
                                 setEditingLearningIndex(i);
                                 setEditingLearningText(item);
                               }}
-                              className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                              className="p-1 text-gray-500 hover:bg-gray-100 rounded cursor-pointer"
                             >
                               <Edit2 className="w-3 h-3" />
                             </button>
                             <button
                               onClick={() => handleDeleteLearning(i)}
-                              className="p-1 text-red-500 hover:bg-red-50 rounded"
+                              className="p-1 text-red-500 hover:bg-red-50 rounded cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -927,7 +935,7 @@ export default function CourseManagementPage() {
                   <button
                     onClick={handleAddLearning}
                     disabled={!newLearning.trim()}
-                    className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     Add
                   </button>
@@ -945,7 +953,7 @@ export default function CourseManagementPage() {
                   {isInstructor && (
                     <button
                       onClick={addModule}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
                       Add Module
@@ -1004,13 +1012,13 @@ export default function CourseManagementPage() {
                               />
                               <button
                                 onClick={handleModuleSave}
-                                className="p-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                                className="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
                               >
                                 <Check className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setEditingModule(null)}
-                                className="p-1.5 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                className="p-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 cursor-pointer"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -1080,13 +1088,13 @@ export default function CourseManagementPage() {
                                     />
                                     <button
                                       onClick={handleLessonSave}
-                                      className="p-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                      className="p-1 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
                                     >
                                       <Save className="w-4 h-4" />
                                     </button>
                                     <button
                                       onClick={() => setEditingLesson(null)}
-                                      className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                      className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600 cursor-pointer"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
@@ -1115,7 +1123,7 @@ export default function CourseManagementPage() {
                                       onClick={() =>
                                         handleLessonEdit(module._id, lesson._id)
                                       }
-                                      className="p-1 hover:bg-gray-200 rounded text-gray-600"
+                                      className="p-1 hover:bg-gray-200 rounded text-gray-600 cursor-pointer"
                                     >
                                       <Edit2 className="w-3 h-3" />
                                     </button>
@@ -1123,7 +1131,7 @@ export default function CourseManagementPage() {
                                       onClick={() =>
                                         deleteLesson(module._id, lesson._id)
                                       }
-                                      className="p-1 hover:bg-red-100 rounded text-red-600"
+                                      className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer"
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </button>
@@ -1136,7 +1144,7 @@ export default function CourseManagementPage() {
                           {isInstructor && (
                             <button
                               onClick={() => openLessonTypeModal(module._id)}
-                              className="w-full py-3 flex items-center justify-center gap-2 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors"
+                              className="w-full py-3 flex items-center justify-center gap-2 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors cursor-pointer"
                             >
                               <Plus className="w-4 h-4" />
                               Add Lesson
@@ -1169,13 +1177,13 @@ export default function CourseManagementPage() {
                         <button
                           onClick={saveNewModule}
                           disabled={!newModuleTitle.trim()}
-                          className="p-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         >
                           <Check className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => setIsAddingModule(false)}
-                          className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                          className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600 cursor-pointer"
                         >
                           <X className="w-5 h-5" />
                         </button>
@@ -1290,14 +1298,14 @@ export default function CourseManagementPage() {
                         <div className="grid grid-cols-2 gap-3">
                           <button
                             onClick={handleCourseSave}
-                            className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors cursor-pointer"
                           >
                             <Save className="w-5 h-5" />
                             Save
                           </button>
                           <button
                             onClick={handleCourseCancel}
-                            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition-colors"
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition-colors cursor-pointer"
                           >
                             <X className="w-5 h-5" />
                             Cancel
@@ -1306,14 +1314,14 @@ export default function CourseManagementPage() {
                       ) : (
                         <button
                           onClick={handleCourseEdit}
-                          className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                          className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <Edit2 className="w-5 h-5" />
                           Edit Course
                         </button>
                       )
                     ) : (
-                      <button className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors">
+                      <button className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors cursor-pointer">
                         Buy Now
                       </button>
                     )}
@@ -1540,7 +1548,7 @@ export default function CourseManagementPage() {
                     {!isUploading && (
                       <button
                         onClick={() => setVideoFile(null)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -1581,7 +1589,7 @@ export default function CourseManagementPage() {
                 disabled={!videoFile || !videoTitle || isUploading}
                 className={`flex-1 px-5 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                   videoFile && videoTitle && !isUploading
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md shadow-green-200"
+                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md shadow-green-200 cursor-pointer"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
@@ -1604,7 +1612,7 @@ export default function CourseManagementPage() {
                   setVideoTitle("");
                 }}
                 disabled={isUploading}
-                className="px-5 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-3 bg-white border-2 border-gray-200 cursor-pointer text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

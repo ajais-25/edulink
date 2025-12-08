@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await Course.create({
+    const course = await Course.create({
       title,
       description,
       instructor: userId,
@@ -149,6 +149,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Course created successfully",
+        data: course,
       },
       { status: 201 }
     );

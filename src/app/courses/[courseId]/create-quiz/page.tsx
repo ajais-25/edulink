@@ -168,7 +168,7 @@ function CreateQuizContent() {
           <div className="flex items-center gap-3">
             <Link
               href={`/courses/${courseId}`}
-              className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             >
               Cancel
             </Link>
@@ -180,7 +180,7 @@ function CreateQuizContent() {
               className={`px-6 py-2 rounded-lg font-bold text-white transition-all flex items-center gap-2 ${
                 isSaving || !quizData.title || quizData.questions.length === 0
                   ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200"
+                  : "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200 cursor-pointer"
               }`}
             >
               {isSaving ? (
@@ -288,7 +288,7 @@ function CreateQuizContent() {
             </div>
             <button
               onClick={addQuestion}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium shadow-lg shadow-gray-200 transition-all transform hover:-translate-y-0.5"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium shadow-lg shadow-gray-200 transition-all transform hover:-translate-y-0.5 cursor-pointer"
             >
               <Plus className="w-5 h-5" />
               Add Question
@@ -319,7 +319,7 @@ function CreateQuizContent() {
                   </div>
                   <button
                     onClick={() => deleteQuestion(question._id)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                     title="Delete question"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -347,7 +347,7 @@ function CreateQuizContent() {
                               oIndex
                             )
                           }
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
                             question.correctOption === oIndex
                               ? "bg-green-500 border-green-500 shadow-sm"
                               : "border-gray-300 hover:border-green-400"
@@ -444,7 +444,7 @@ function CreateQuizContent() {
                 </p>
                 <button
                   onClick={addQuestion}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-lg shadow-gray-200"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-lg shadow-gray-200 cursor-pointer"
                 >
                   <Plus className="w-5 h-5" />
                   Add First Question
@@ -454,7 +454,7 @@ function CreateQuizContent() {
               <div className="flex justify-center pt-4">
                 <button
                   onClick={addQuestion}
-                  className="flex items-center gap-2 px-8 py-3 bg-gray-900 text-white rounded-xl hover:bg-black font-bold shadow-lg shadow-gray-200 transition-all transform hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-8 py-3 bg-gray-900 text-white rounded-xl hover:bg-black font-bold shadow-lg shadow-gray-200 transition-all transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Plus className="w-5 h-5" />
                   Add Question

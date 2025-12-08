@@ -3,62 +3,12 @@
 import { useEffect, useState } from "react";
 import { Plus, Search, Filter } from "lucide-react";
 import axios from "axios";
+import Link from "next/link";
 import CourseCard, { Course } from "@/components/CourseCard";
-import CreateCourseModal from "@/components/CreateCourseModal";
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      _id: "1",
-      title: "Web Development Fundamentals",
-      description: "Learn the basics of HTML, CSS, and JavaScript",
-      thumbnail: {
-        fileId: "https://ik.imagekit.io/your-imagekit-id/your-image.jpg",
-        url: "https://ik.imagekit.io/your-imagekit-id/your-image.jpg",
-      },
-      category: "Development",
-      level: "Beginner",
-      price: 3999,
-      isPublished: true,
-      enrollmentCount: 1234,
-      ratings: [
-        { userId: "u1", rating: 5 },
-        { userId: "u2", rating: 4 },
-      ],
-    },
-    {
-      _id: "2",
-      title: "Advanced React Patterns",
-      description: "Master advanced React concepts and design patterns",
-      thumbnail: {
-        fileId: "https://ik.imagekit.io/your-imagekit-id/your-image.jpg",
-        url: "https://ik.imagekit.io/your-imagekit-id/your-image.jpg",
-      },
-      category: "Development",
-      level: "Advanced",
-      price: 7999,
-      isPublished: true,
-      enrollmentCount: 856,
-      ratings: [],
-    },
-    {
-      _id: "3",
-      title: "UI/UX Design Masterclass",
-      description: "Create beautiful and user-friendly interfaces",
-      thumbnail: {
-        fileId: "https://ik.imagekit.io/your-imagekit-id/your-image.jpg",
-        url: "https://ik.imagekit.io/your-imagekit-id/your-image.jpg",
-      },
-      category: "Design",
-      level: "Intermediate",
-      price: 6499,
-      isPublished: false,
-      enrollmentCount: 0,
-      ratings: [],
-    },
-  ]);
-
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All");
 
@@ -71,15 +21,13 @@ export default function CoursesPage() {
         }
       } catch (error) {
         console.error("Error fetching courses");
+      } finally {
+        setLoading(false);
       }
     };
 
     getCourses();
   }, []);
-
-  const handleCourseCreated = (newCourse: Course) => {
-    setCourses((prev) => [...prev, newCourse]);
-  };
 
   const filteredCourses = courses.filter((course) => {
     if (!course || !course.title) return false;
@@ -110,13 +58,13 @@ export default function CoursesPage() {
                 advance your career.
               </p>
             </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg shadow-blue-600/20 transform hover:-translate-y-0.5"
+            <Link
+              href="/courses/create"
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg shadow-blue-600/20 transform hover:-translate-y-0.5 cursor-pointer"
             >
               <Plus className="w-5 h-5" />
-              Create New Course
-            </button>
+              Create Course
+            </Link>
           </div>
         </div>
       </div>
@@ -156,7 +104,14 @@ export default function CoursesPage() {
         </div>
 
         {/* Course Grid */}
-        {filteredCourses.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="text-gray-500 font-medium">Fetching courses...</p>
+            </div>
+          </div>
+        ) : filteredCourses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredCourses.map((course) => (
               <CourseCard key={course._id} course={course} />
@@ -176,12 +131,6 @@ export default function CoursesPage() {
           </div>
         )}
       </div>
-
-      <CreateCourseModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onCourseCreated={handleCourseCreated}
-      />
     </div>
   );
 }
