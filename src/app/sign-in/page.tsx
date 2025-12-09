@@ -1,12 +1,16 @@
 "use client";
 
-import axios from "axios";
+import { useAppDispatch } from "@/redux/hooks";
+import { setUser } from "@/redux/slices/user";
 import { useState } from "react";
+import axios from "axios";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +22,7 @@ export default function SignIn() {
         password,
       });
 
-      console.log(response);
+      dispatch(setUser(response.data.data.user));
     } catch (error: any) {
       console.error(error.response.data.message);
     } finally {

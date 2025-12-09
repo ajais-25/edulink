@@ -5,22 +5,22 @@ export default async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     const isPublic =
-      path == "/login" ||
-      path == "/signup" ||
+      path == "/sign-in" ||
+      path == "/sign-up" ||
       path == "/forgot-password" ||
       path == "/reset-password";
 
     const token = request.cookies.get("token")?.value || "";
 
     if (isPublic && token) {
-      return NextResponse.redirect(new URL("/", request.nextUrl));
+      return NextResponse.redirect(new URL("/courses", request.nextUrl));
     }
 
     if (!isPublic && !token) {
       return NextResponse.redirect(new URL("/sign-in", request.nextUrl));
     }
   } catch (error) {
-    return Response.json(
+    return NextResponse.json(
       { success: false, message: "Invalid Token" },
       { status: 401 }
     );
@@ -29,5 +29,11 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   // TODO: add routes
-  matcher: [],
+  matcher: [
+    "/sign-in",
+    "/sign-up",
+    "/forgot-password",
+    "/reset-password",
+    "/courses/:path*",
+  ],
 };

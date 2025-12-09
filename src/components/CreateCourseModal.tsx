@@ -9,7 +9,7 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
-import axios from "axios";
+import api from "@/lib/axios";
 
 interface Thumbnail {
   fileId: string;
@@ -167,7 +167,7 @@ export default function CreateCourseModal({
         imagekit: uploadResponse,
       };
 
-      const response = await axios.post("/api/courses", axiosData);
+      const response = await api.post("/api/courses", axiosData);
 
       onCourseCreated(response.data.data);
       onClose();

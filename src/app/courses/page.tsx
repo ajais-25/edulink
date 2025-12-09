@@ -2,20 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Search, Filter } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/axios";
 import Link from "next/link";
 import CourseCard, { Course } from "@/components/CourseCard";
+
+import { useAppSelector } from "@/redux/hooks";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All");
+  const { user, isAuthenticated } = useAppSelector((state) => state.user);
 
   useEffect(() => {
     const getCourses = async () => {
       try {
-        const response = await axios.get("/api/courses");
+        const response = await api.get("/api/courses");
         if (response.data && response.data.data) {
           setCourses(response.data.data);
         }
@@ -58,13 +61,15 @@ export default function CoursesPage() {
                 advance your career.
               </p>
             </div>
-            <Link
-              href="/courses/create"
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg shadow-blue-600/20 transform hover:-translate-y-0.5 cursor-pointer"
-            >
-              <Plus className="w-5 h-5" />
-              Create Course
-            </Link>
+            {isAuthenticated && user?.role === "instructor" && (
+              <Link
+                href="/courses/create"
+                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg shadow-blue-600/20 transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                <Plus className="w-5 h-5" />
+                Create Course
+              </Link>
+            )}
           </div>
         </div>
       </div>

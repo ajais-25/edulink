@@ -9,6 +9,16 @@ export async function GET(request: NextRequest) {
   try {
     const userId = getDataFromToken(request);
 
+    if (!userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized - Invalid or expired token",
+        },
+        { status: 401 }
+      );
+    }
+
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
@@ -45,9 +55,17 @@ export async function PATCH(request: NextRequest) {
   await dbConnect();
 
   try {
-    const { bio, avatar, linkedIn, twitter } = await request.json();
-
     const userId = getDataFromToken(request);
+
+    if (!userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized - Invalid or expired token",
+        },
+        { status: 401 }
+      );
+    }
 
     const user = await User.findById(userId).select("-password");
 
@@ -60,6 +78,8 @@ export async function PATCH(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const { bio, avatar, linkedIn, twitter } = await request.json();
 
     user.profile.bio = bio;
     user.profile.avatar = avatar;

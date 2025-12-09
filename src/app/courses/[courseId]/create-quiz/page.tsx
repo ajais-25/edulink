@@ -14,7 +14,7 @@ import {
   ArrowLeft,
   X,
 } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/axios";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -124,7 +124,7 @@ function CreateQuizContent() {
         explanation: q.explanation,
       }));
 
-      await axios.post(`/api/courses/${courseId}/modules/${moduleId}/lessons`, {
+      await api.post(`/api/courses/${courseId}/modules/${moduleId}/lessons`, {
         title: quizData.title || "New Quiz",
         type: "quiz",
         timeLimit: quizData.timeLimit,

@@ -10,6 +10,16 @@ export async function GET(request: NextRequest) {
   try {
     const userId = getDataFromToken(request);
 
+    if (!userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized - Invalid or expired token",
+        },
+        { status: 401 }
+      );
+    }
+
     const existingUser = await User.findById(userId);
 
     if (!existingUser) {

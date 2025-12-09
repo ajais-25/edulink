@@ -23,7 +23,7 @@ import {
   Infinity,
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/axios";
 import {
   ImageKitAbortError,
   ImageKitInvalidRequestError,
@@ -31,6 +31,7 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
+import { useAppSelector } from "@/redux/hooks";
 
 interface Thumbnail {
   fileId: string;
@@ -90,6 +91,10 @@ export default function CourseManagementPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const expandedModuleId = searchParams.get("expandedModule");
+
+  const { user, isAuthenticated } = useAppSelector((state) => state.user);
+  const isInstructor =
+    (isAuthenticated && user?.role === "instructor") || false;
 
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<UIModule[]>([]);
@@ -194,7 +199,7 @@ export default function CourseManagementPage() {
         imagekit: uploadResponse,
       };
 
-      const response = await axios.post(
+      const response = await api.post(
         `/api/courses/${courseId}/modules/${moduleId}/lessons`,
         axiosData
       );
@@ -228,7 +233,7 @@ export default function CourseManagementPage() {
   const fetchData = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      const res = await axios.get(`/api/courses/${courseId}`);
+      const res = await api.get(`/api/courses/${courseId}`);
 
       const fetchedCourse = res.data.data.course;
       const fetchedModules: UIModule[] = res.data.data.modules;
@@ -277,7 +282,7 @@ export default function CourseManagementPage() {
   const handleCourseSave = async () => {
     if (editingCourse) {
       try {
-        await axios.patch(`/api/courses/${courseId}`, {
+        await api.patch(`/api/courses/${courseId}`, {
           title: editingCourse.title,
           description: editingCourse.description,
           category: editingCourse.category,
@@ -333,7 +338,7 @@ export default function CourseManagementPage() {
         url: uploadResponse.url as string,
       };
 
-      await axios.patch(`/api/courses/${courseId}/change-thumbnail`, {
+      await api.patch(`/api/courses/${courseId}/change-thumbnail`, {
         imagekit: uploadResponse,
       });
 
@@ -356,7 +361,7 @@ export default function CourseManagementPage() {
     try {
       setIsPublishing(true);
       const newStatus = !course.isPublished;
-      await axios.patch(`/api/courses/${courseId}/toggle-publish-status`);
+      await api.patch(`/api/courses/${courseId}/toggle-publish-status`);
 
       setCourse({ ...course, isPublished: newStatus });
       if (editingCourse) {
@@ -380,7 +385,7 @@ export default function CourseManagementPage() {
   const handleModuleSave = async () => {
     if (editingModule) {
       try {
-        await axios.patch(
+        await api.patch(
           `/api/courses/${courseId}/modules/${editingModule._id}`,
           {
             title: editingModule.title,
@@ -408,7 +413,7 @@ export default function CourseManagementPage() {
   const handleLessonSave = async () => {
     if (editingLesson) {
       try {
-        await axios.patch(
+        await api.patch(
           `/api/courses/${courseId}/modules/${editingLesson.moduleId}/lessons/${editingLesson._id}`,
           {
             title: editingLesson.title,
@@ -447,7 +452,7 @@ export default function CourseManagementPage() {
     if (!newModuleTitle.trim()) return;
 
     try {
-      const res = await axios.post(`/api/courses/${courseId}/modules`, {
+      const res = await api.post(`/api/courses/${courseId}/modules`, {
         title: newModuleTitle,
       });
 
@@ -499,18 +504,6 @@ export default function CourseManagementPage() {
     }
   };
 
-  const saveVideoLesson = async () => {
-    if (showVideoUploadModal === null) return;
-    const moduleId = showVideoUploadModal;
-
-    // Mock API call for now
-    console.log("Saving video lesson for module:", moduleId);
-    setShowVideoUploadModal(null);
-    setVideoFile(null);
-    setVideoTitle("");
-    fetchData();
-  };
-
   const deleteModule = async (moduleId: string) => {
     const moduleToDelete = modules.find((m) => m._id === moduleId);
     const lessonCount = moduleToDelete?.lessons.length || 0;
@@ -524,7 +517,7 @@ export default function CourseManagementPage() {
     if (!isConfirmed) return;
 
     try {
-      await axios.delete(`/api/courses/${courseId}/modules/${moduleId}`);
+      await api.delete(`/api/courses/${courseId}/modules/${moduleId}`);
       setModules(modules.filter((m) => m._id !== moduleId));
     } catch (error) {
       console.error("Error deleting module:", error);
@@ -534,7 +527,7 @@ export default function CourseManagementPage() {
 
   const deleteLesson = async (moduleId: string, lessonId: string) => {
     try {
-      await axios.delete(
+      await api.delete(
         `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
       );
     } catch (error) {
@@ -567,7 +560,7 @@ export default function CourseManagementPage() {
     }
 
     try {
-      await axios.patch(`/api/courses/${courseId}`, {
+      await api.patch(`/api/courses/${courseId}`, {
         title: course.title,
         description: course.description,
         category: course.category,
@@ -577,8 +570,6 @@ export default function CourseManagementPage() {
       });
     } catch (error) {
       console.error("Error updating learnings:", error);
-      // Revert on error (optional but good practice)
-      // setCourse(course);
     }
   };
 
@@ -599,7 +590,7 @@ export default function CourseManagementPage() {
     }
 
     try {
-      await axios.patch(`/api/courses/${courseId}`, {
+      await api.patch(`/api/courses/${courseId}`, {
         title: course.title,
         description: course.description,
         category: course.category,
@@ -628,7 +619,7 @@ export default function CourseManagementPage() {
     }
 
     try {
-      await axios.patch(`/api/courses/${courseId}`, {
+      await api.patch(`/api/courses/${courseId}`, {
         title: course.title,
         description: course.description,
         category: course.category,
@@ -641,7 +632,6 @@ export default function CourseManagementPage() {
     }
   };
 
-  const isInstructor = true; // TODO: Remove this later
   const totalLessons = modules.reduce(
     (acc, module) => acc + module.lessons.length,
     0

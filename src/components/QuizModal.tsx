@@ -13,7 +13,7 @@ import {
   FileText,
   Save,
 } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/axios";
 
 interface Question {
   _id: number; // Internal unique ID for React state management
@@ -118,7 +118,7 @@ export default function QuizModal({
         explanation: q.explanation,
       }));
 
-      await axios.post(`/api/courses/${courseId}/modules/${moduleId}/lessons`, {
+      await api.post(`/api/courses/${courseId}/modules/${moduleId}/lessons`, {
         title: quizData.title || "New Quiz",
         type: "quiz",
         timeLimit: quizData.timeLimit,

@@ -7,23 +7,23 @@ interface DecodedToken {
   email: string;
 }
 
-export function getDataFromToken(request: NextRequest) {
+export function getDataFromToken(request: NextRequest): string | null {
   try {
     const token = request.cookies.get("token")?.value || "";
     const secret = process.env.JWT_SECRET;
 
-    if (!secret) {
-      throw new Error("Configure JWT properly");
+    if (!token || !secret) {
+      return null;
     }
 
     const decodedToken = jwt.verify(token, secret) as JwtPayload & DecodedToken;
 
     if (!decodedToken._id) {
-      throw new Error("Invalid token");
+      return null;
     }
 
     return decodedToken._id;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error) {
+    return null;
   }
 }

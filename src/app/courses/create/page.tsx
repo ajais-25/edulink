@@ -15,7 +15,7 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
-import axios from "axios";
+import api from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -164,7 +164,7 @@ export default function CreateCoursePage() {
         imagekit: uploadResponse,
       };
 
-      const response = await axios.post("/api/courses", axiosData);
+      const response = await api.post("/api/courses", axiosData);
 
       if (response.data && response.data.data && response.data.data._id) {
         router.push(`/courses/${response.data.data._id}`);

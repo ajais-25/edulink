@@ -82,6 +82,7 @@ export async function POST(request: Request) {
           message: "User Logged In successfully",
           data: {
             user: {
+              _id: existingUser._id,
               name: existingUser.name,
               email: existingUser.email,
               role: existingUser.role,

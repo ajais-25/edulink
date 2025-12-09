@@ -19,6 +19,16 @@ export async function PATCH(
   try {
     const userId = getDataFromToken(request);
 
+    if (!userId) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized - Invalid or expired token",
+        },
+        { status: 401 }
+      );
+    }
+
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
