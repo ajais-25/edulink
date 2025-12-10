@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { clearUser, setUser } from "@/redux/slices/user";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
@@ -14,6 +14,7 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isChangingRole, setIsChangingRole] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,7 +34,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("/api/auth/logout");
+      await axios.post("/api/auth/logout");
       dispatch(clearUser());
       router.push("/sign-in");
     } catch (error) {
@@ -90,13 +91,21 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link
             href="/courses"
-            className="hidden text-sm font-medium text-gray-700 hover:text-indigo-600 md:block"
+            className={`hidden text-sm font-medium md:block ${
+              pathname?.startsWith("/courses")
+                ? "text-indigo-600"
+                : "text-gray-700 hover:text-indigo-600"
+            }`}
           >
             Browse Courses
           </Link>
           <Link
             href="/my-courses"
-            className="hidden text-sm font-medium text-gray-700 hover:text-indigo-600 md:block"
+            className={`hidden text-sm font-medium md:block ${
+              pathname?.startsWith("/my-courses")
+                ? "text-indigo-600"
+                : "text-gray-700 hover:text-indigo-600"
+            }`}
           >
             My Courses
           </Link>

@@ -4,6 +4,7 @@ import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/slices/user";
 import { useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,8 @@ export default function SignIn() {
         email,
         password,
       });
+
+      router.push("/courses");
 
       dispatch(setUser(response.data.data.user));
     } catch (error: any) {
