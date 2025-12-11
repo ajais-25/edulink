@@ -46,6 +46,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
+      setIsDropdownOpen(false);
       await axios.post("/api/auth/logout");
       dispatch(clearUser());
       router.push("/sign-in");

@@ -93,7 +93,7 @@ export default function CoursesPage() {
                 <select
                   value={level}
                   onChange={(e) => updateFilters("level", e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-transparent hover:bg-gray-50 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-gray-200"
+                  className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:border-gray-400 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-gray-200"
                 >
                   {levels.map((lvl) => (
                     <option key={lvl} value={lvl}>
@@ -123,16 +123,33 @@ export default function CoursesPage() {
               <span className="text-sm font-medium text-gray-700">
                 Sort by:
               </span>
-              <select
-                value={sort}
-                onChange={(e) => updateFilters("sort", e.target.value)}
-                className="appearance-none pl-2 pr-8 py-1 bg-transparent text-sm font-medium text-gray-900 cursor-pointer outline-none focus:underline"
-              >
-                <option value="relevant">Most Relevant</option>
-                <option value="rated">Highest Rated</option>
-                <option value="reviewed">Most Reviewed</option>
-                <option value="newest">Newest</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={sort}
+                  onChange={(e) => updateFilters("sort", e.target.value)}
+                  className="appearance-none pl-2 pr-8 py-1 bg-transparent text-sm font-medium text-gray-900 cursor-pointer outline-none focus:underline"
+                >
+                  <option value="relevant">Most Relevant</option>
+                  <option value="rated">Highest Rated</option>
+                  <option value="reviewed">Most Reviewed</option>
+                  <option value="newest">Newest</option>
+                </select>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
