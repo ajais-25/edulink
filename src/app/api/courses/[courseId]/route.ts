@@ -66,7 +66,7 @@ export async function GET(
           pipeline: [
             {
               $project: {
-                _id: 0,
+                _id: 1,
                 name: 1,
                 profile: 1,
               },

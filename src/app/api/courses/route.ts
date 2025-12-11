@@ -9,6 +9,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const userId = getDataFromToken(request);
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search");
+    const level = searchParams.get("level");
+    const sort = searchParams.get("sort");
 
     if (!userId) {
       return Response.json(
@@ -32,12 +36,48 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const courses = await Course.find({
-      instructor: {
-        $ne: userId,
-      },
+    const matchStage: any = {
       isPublished: true,
-    });
+      instructor: { $ne: userId },
+    };
+
+    if (search) {
+      matchStage.title = { $regex: search, $options: "i" };
+    }
+
+    if (level && level !== "All") {
+      matchStage.level = level.toLowerCase();
+    }
+
+    const pipeline: any[] = [
+      { $match: matchStage },
+      {
+        $addFields: {
+          avgRating: { $avg: "$ratings.rating" },
+          numRatings: { $size: "$ratings" },
+        },
+      },
+    ];
+
+    if (sort) {
+      switch (sort) {
+        case "rated":
+          pipeline.push({ $sort: { avgRating: -1 } });
+          break;
+        case "reviewed":
+          pipeline.push({ $sort: { numRatings: -1 } });
+          break;
+        case "newest":
+          pipeline.push({ $sort: { createdAt: -1 } });
+          break;
+        default:
+          pipeline.push({ $sort: { createdAt: 1 } });
+      }
+    } else {
+      pipeline.push({ $sort: { createdAt: 1 } });
+    }
+
+    const courses = await Course.aggregate(pipeline);
 
     return Response.json(
       {

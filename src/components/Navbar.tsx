@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { clearUser, setUser } from "@/redux/slices/user";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
@@ -15,7 +15,19 @@ export default function Navbar() {
   const [isChangingRole, setIsChangingRole] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const search = searchParams.get("search");
+    if (search) {
+      setSearchQuery(search);
+    } else if (pathname === "/courses" && !search) {
+      setSearchQuery("");
+    }
+  }, [searchParams, pathname]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -61,6 +73,22 @@ export default function Navbar() {
     }
   };
 
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      router.push(`/courses?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    // If input is cleared and we are on courses page, clear the search filter
+    if (value === "" && pathname === "/courses") {
+      router.push("/courses");
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -79,6 +107,9 @@ export default function Navbar() {
             </div>
             <input
               type="search"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={handleSearch}
               className="block w-full rounded-full border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
               placeholder="Search for courses..."
             />
@@ -90,7 +121,7 @@ export default function Navbar() {
           <Link
             href="/courses"
             className={`hidden text-sm font-medium md:block ${
-              pathname?.startsWith("/courses")
+              pathname === "/courses"
                 ? "text-indigo-600"
                 : "text-gray-700 hover:text-indigo-600"
             }`}

@@ -48,6 +48,7 @@ interface Course {
   title: string;
   description: string;
   instructor: {
+    _id: string;
     name: string;
     profile: {
       avatar: {
@@ -101,12 +102,16 @@ export default function CourseManagementPage() {
   const expandedModuleId = searchParams.get("expandedModule");
 
   const { user, isAuthenticated } = useAppSelector((state) => state.user);
-  const isInstructor =
-    (isAuthenticated && user?.role === "instructor") || false;
 
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<UIModule[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isCourseInstructor =
+    (isAuthenticated &&
+      user?.role === "instructor" &&
+      course?.instructor._id === user?._id) ||
+    false;
 
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [isEditingCourse, setIsEditingCourse] = useState(false);
@@ -898,7 +903,7 @@ export default function CourseManagementPage() {
                         <span className="text-gray-700 text-sm flex-1">
                           {item}
                         </span>
-                        {isInstructor && !isEditingCourse && (
+                        {isCourseInstructor && !isEditingCourse && (
                           <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1">
                             <button
                               onClick={() => {
@@ -923,7 +928,7 @@ export default function CourseManagementPage() {
                 ))}
               </div>
 
-              {isInstructor && !isEditingCourse && (
+              {isCourseInstructor && !isEditingCourse && (
                 <div className="mt-4 flex gap-2">
                   <input
                     type="text"
@@ -951,7 +956,7 @@ export default function CourseManagementPage() {
                   <h2 className="text-xl font-bold text-gray-900">
                     Course Content
                   </h2>
-                  {isInstructor && (
+                  {isCourseInstructor && (
                     <button
                       onClick={addModule}
                       className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
@@ -1036,7 +1041,7 @@ export default function CourseManagementPage() {
                           )}
                         </div>
 
-                        {!isEditingThisModule && isInstructor && (
+                        {!isEditingThisModule && isCourseInstructor && (
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <div
                               onClick={(e) => {
@@ -1118,7 +1123,7 @@ export default function CourseManagementPage() {
                                     ) || "00:00"}
                                   </span>
                                 )}
-                                {isInstructor && (
+                                {isCourseInstructor && (
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                       onClick={() =>
@@ -1142,7 +1147,7 @@ export default function CourseManagementPage() {
                             </div>
                           ))}
 
-                          {isInstructor && (
+                          {isCourseInstructor && (
                             <button
                               onClick={() => openLessonTypeModal(module._id)}
                               className="w-full py-3 flex items-center justify-center gap-2 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors cursor-pointer"
@@ -1234,7 +1239,7 @@ export default function CourseManagementPage() {
                       className="w-full h-48 object-cover"
                     />
 
-                    {isInstructor && (
+                    {isCourseInstructor && (
                       <label className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         {isUploadingThumbnail ? (
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
@@ -1294,7 +1299,7 @@ export default function CourseManagementPage() {
                   </div>
 
                   <div className="space-y-3 mb-6">
-                    {isInstructor ? (
+                    {isCourseInstructor ? (
                       isEditingCourse ? (
                         <div className="grid grid-cols-2 gap-3">
                           <button
@@ -1362,7 +1367,7 @@ export default function CourseManagementPage() {
               </div>
 
               {/* Published Status (Instructor Only) */}
-              {isInstructor && (
+              {isCourseInstructor && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                   <h3 className="font-bold text-gray-900 mb-4">
                     Course Status

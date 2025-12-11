@@ -6,66 +6,53 @@ import api from "@/lib/axios";
 import Link from "next/link";
 import CourseCard, { Course } from "@/components/CourseCard";
 import { useAppSelector } from "@/redux/hooks";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLevel, setSelectedLevel] = useState("All");
-  const [sortBy, setSortBy] = useState("relevant");
   const { user, isAuthenticated } = useAppSelector((state) => state.user);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const search = searchParams.get("search") || "";
+  const level = searchParams.get("level") || "All";
+  const sort = searchParams.get("sort") || "relevant";
 
   useEffect(() => {
     const getCourses = async () => {
+      setLoading(true);
       try {
-        const response = await api.get("/api/courses");
+        const params = new URLSearchParams();
+        if (search) params.append("search", search);
+        if (level && level !== "All") params.append("level", level);
+        if (sort) params.append("sort", sort);
+
+        const response = await api.get(`/api/courses?${params.toString()}`);
         if (response.data && response.data.data) {
           setCourses(response.data.data);
         }
       } catch (error) {
-        console.error("Error fetching courses");
+        console.error("Error fetching courses", error);
+        setCourses([]);
       } finally {
         setLoading(false);
       }
     };
 
     getCourses();
-  }, []);
+  }, [search, level, sort]);
 
-  const filteredAndSortedCourses = courses
-    .filter((course) => {
-      if (!course || !course.title) return false;
-
-      // Level Filter
-      const matchesLevel =
-        selectedLevel === "All" ||
-        course.level.toLowerCase() === selectedLevel.toLowerCase();
-
-      return matchesLevel;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "rated":
-          const ratingA =
-            a.ratings && a.ratings.length > 0
-              ? a.ratings.reduce((acc, curr) => acc + curr.rating, 0) /
-                a.ratings.length
-              : 0;
-          const ratingB =
-            b.ratings && b.ratings.length > 0
-              ? b.ratings.reduce((acc, curr) => acc + curr.rating, 0) /
-                b.ratings.length
-              : 0;
-          return ratingB - ratingA;
-        case "reviewed":
-          const reviewsA = a.ratings ? a.ratings.length : 0;
-          const reviewsB = b.ratings ? b.ratings.length : 0;
-          return reviewsB - reviewsA;
-        case "newest":
-          return new Date(b._id).getTime() - new Date(a._id).getTime(); // Assuming _id contains timestamp or use createdAt if available, but usually _id suffices for Mongo
-        default:
-          return 0; // "relevant" - unsorted/default order
-      }
-    });
+  const updateFilters = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value && value !== "All" && value !== "relevant") {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    router.push(`/courses?${params.toString()}`);
+  };
 
   const levels = ["All", "Beginner", "Intermediate", "Advanced"];
 
@@ -76,7 +63,9 @@ export default function CoursesPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Recommended courses
+              {search
+                ? `Search results for "${search}"`
+                : "Recommended courses"}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               Discover courses to accelerate your career
@@ -102,8 +91,8 @@ export default function CoursesPage() {
               {/* Level Dropdown - Pill Style */}
               <div className="relative">
                 <select
-                  value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  value={level}
+                  onChange={(e) => updateFilters("level", e.target.value)}
                   className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-transparent hover:bg-gray-50 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-gray-200"
                 >
                   {levels.map((lvl) => (
@@ -135,8 +124,8 @@ export default function CoursesPage() {
                 Sort by:
               </span>
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                value={sort}
+                onChange={(e) => updateFilters("sort", e.target.value)}
                 className="appearance-none pl-2 pr-8 py-1 bg-transparent text-sm font-medium text-gray-900 cursor-pointer outline-none focus:underline"
               >
                 <option value="relevant">Most Relevant</option>
@@ -158,9 +147,9 @@ export default function CoursesPage() {
               <p className="text-gray-500 font-medium">Fetching courses...</p>
             </div>
           </div>
-        ) : filteredAndSortedCourses.length > 0 ? (
+        ) : courses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAndSortedCourses.map((course) => (
+            {courses.map((course) => (
               <CourseCard key={course._id} course={course} />
             ))}
           </div>
@@ -174,7 +163,7 @@ export default function CoursesPage() {
             </h3>
             <p className="text-gray-500 mt-1">Try adjusting your filters</p>
             <button
-              onClick={() => setSelectedLevel("All")}
+              onClick={() => router.push("/courses")}
               className="mt-4 text-gray-900 underline font-medium hover:text-gray-700"
             >
               Clear filters
