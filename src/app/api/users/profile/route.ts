@@ -79,22 +79,37 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const { bio, avatar, linkedIn, twitter } = await request.json();
+    const { name, bio, linkedIn, twitter } = await request.json();
 
-    user.profile.bio = bio;
-    user.profile.avatar = avatar;
+    if (name) user.name = name;
 
-    if (user.profile.socialLinks) {
-      user.profile.socialLinks.linkedIn = linkedIn;
-      user.profile.socialLinks.twitter = twitter;
+    if (!user.profile) {
+      user.profile = {
+        bio: "",
+        avatar: {
+          fileId: "",
+          url: "",
+        },
+        socialLinks: { linkedIn: "", twitter: "" },
+      };
     }
+
+    if (bio !== undefined) user.profile.bio = bio;
+
+    if (!user.profile.socialLinks) {
+      user.profile.socialLinks = { linkedIn: "", twitter: "" };
+    }
+
+    if (linkedIn !== undefined) user.profile.socialLinks.linkedIn = linkedIn;
+    if (twitter !== undefined) user.profile.socialLinks.twitter = twitter;
 
     await user.save();
 
     return Response.json(
       {
-        success: false,
+        success: true,
         message: "Profile updated successfully",
+        data: user,
       },
       { status: 200 }
     );

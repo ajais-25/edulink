@@ -68,6 +68,7 @@ export async function GET(
               $project: {
                 _id: 0,
                 name: 1,
+                profile: 1,
               },
             },
           ],

@@ -47,7 +47,15 @@ interface Course {
   _id: string;
   title: string;
   description: string;
-  instructor: { name: string };
+  instructor: {
+    name: string;
+    profile: {
+      avatar: {
+        fileId: string;
+        url: string;
+      };
+    };
+  };
   thumbnail: Thumbnail;
   category: string;
   level: "beginner" | "intermediate" | "advanced";
@@ -753,7 +761,10 @@ export default function CourseManagementPage() {
               <div className="flex items-center gap-4 pt-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                    src={
+                      displayCourse.instructor.profile.avatar.url ||
+                      "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                    }
                     alt="Instructor"
                     className="w-10 h-10 rounded-full border-2 border-gray-700"
                   />

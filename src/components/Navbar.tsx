@@ -47,12 +47,10 @@ export default function Navbar() {
       setIsChangingRole(true);
       const response = await axios.patch("/api/users/change-role");
       if (response.data.success) {
-        // Optimistically update the role or fetch user again.
-        // Since the API returns success, we can toggle the local state or re-fetch.
-        // For simplicity/speed, let's assume we need to re-fetch or manually toggle for the UI update.
         if (user) {
           const newRole = user.role === "student" ? "instructor" : "student";
           dispatch(setUser({ ...user, role: newRole }));
+          window.location.reload();
         }
       }
     } catch (error) {
@@ -123,7 +121,7 @@ export default function Navbar() {
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               type="button"
-              className={`flex rounded-full bg-white text-sm focus:outline-none ${
+              className={`flex rounded-full bg-white text-sm cursor-pointer focus:outline-none ${
                 user?.role === "instructor"
                   ? "ring-2 ring-indigo-600 ring-offset-2"
                   : ""
@@ -131,9 +129,9 @@ export default function Navbar() {
             >
               <span className="sr-only">Open user menu</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 overflow-hidden">
-                {user?.profile?.avatar ? (
+                {user?.profile?.avatar?.url ? (
                   <img
-                    src={user.profile.avatar}
+                    src={user.profile.avatar.url}
                     alt={user.name}
                     className="h-full w-full object-cover"
                   />

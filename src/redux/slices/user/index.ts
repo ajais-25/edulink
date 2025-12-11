@@ -7,7 +7,10 @@ export interface SocialLinks {
 
 export interface Profile {
   bio?: string;
-  avatar?: string;
+  avatar?: {
+    fileId: string;
+    url: string;
+  };
   socialLinks?: SocialLinks;
 }
 

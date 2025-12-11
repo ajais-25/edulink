@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface SocialLinks {
   linkedIn?: string;
@@ -7,7 +7,10 @@ export interface SocialLinks {
 
 export interface Profile {
   bio?: string;
-  avatar?: string;
+  avatar?: {
+    fileId: string;
+    url: string;
+  };
   socialLinks?: SocialLinks;
 }
 
@@ -52,7 +55,10 @@ const userSchema: Schema<User> = new Schema(
     },
     profile: {
       bio: String,
-      avatar: String,
+      avatar: {
+        fileId: String,
+        url: String,
+      },
       socialLinks: {
         linkedIn: String,
         twitter: String,

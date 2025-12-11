@@ -32,16 +32,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (existingUser.role !== "instructor") {
-      return Response.json(
-        {
-          success: false,
-          message: "You need to be an Instructor to do this",
-        },
-        { status: 403 }
-      );
-    }
-
     const { token, expire, signature } = getUploadAuthParams({
       privateKey: process.env.IMAGEKIT_PRIVATE_KEY as string,
       publicKey: process.env.IMAGEKIT_PUBLIC_KEY as string,
