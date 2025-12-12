@@ -2,6 +2,7 @@ import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
 import User from "@/models/User";
+import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const matchStage: any = {
       isPublished: true,
-      instructor: { $ne: userId },
+      instructor: { $ne: new mongoose.Types.ObjectId(userId) },
     };
 
     if (search) {
