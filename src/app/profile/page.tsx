@@ -8,7 +8,6 @@ import {
   upload,
 } from "@imagekit/next";
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import {
   User,
   Mail,
@@ -153,7 +152,7 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/users/profile");
+      const response = await api.get("/api/users/profile");
       if (response.data.success) {
         const userData = response.data.data;
         setUserData(userData);
@@ -185,7 +184,7 @@ export default function ProfilePage() {
     setError("");
 
     try {
-      const response = await axios.patch("/api/users/profile", formData);
+      const response = await api.patch("/api/users/profile", formData);
       if (response.data.success) {
         setUserData(response.data.data);
         setIsEditing(false);

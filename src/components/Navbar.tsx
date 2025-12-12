@@ -4,9 +4,9 @@ import Link from "next/link";
 import { Search, Bell, User, LogOut, RefreshCw } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import { clearUser, setUser } from "@/redux/slices/user";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import api from "@/lib/axios";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
@@ -47,7 +47,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       setIsDropdownOpen(false);
-      await axios.post("/api/auth/logout");
+      await api.post("/api/auth/logout");
       dispatch(clearUser());
       router.push("/sign-in");
     } catch (error) {
@@ -58,7 +58,7 @@ export default function Navbar() {
   const handleChangeRole = async () => {
     try {
       setIsChangingRole(true);
-      const response = await axios.patch("/api/users/change-role");
+      const response = await api.patch("/api/users/change-role");
       if (response.data.success) {
         if (user) {
           const newRole = user.role === "student" ? "instructor" : "student";

@@ -3,8 +3,8 @@
 import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/slices/user";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import api from "@/lib/axios";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("/api/auth/sign-in", {
+      const response = await api.post("/api/auth/sign-in", {
         email,
         password,
       });
