@@ -136,6 +136,8 @@ export default function CourseManagementPage() {
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const [priceInput, setPriceInput] = useState<string>("");
 
   // Learnings state
@@ -250,9 +252,11 @@ export default function CourseManagementPage() {
 
       const fetchedCourse = res.data.data.course;
       const fetchedModules: UIModule[] = res.data.data.modules;
+      const enrolledStatus = res.data.data.isEnrolled;
 
       setCourse(fetchedCourse);
       setModules(fetchedModules);
+      setIsEnrolled(enrolledStatus);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -642,6 +646,34 @@ export default function CourseManagementPage() {
       });
     } catch (error) {
       console.error("Error updating learnings:", error);
+    }
+  };
+
+  const handleEnroll = async () => {
+    if (!isAuthenticated) {
+      router.push("/sign-in");
+      return;
+    }
+
+    try {
+      setIsEnrolling(true);
+      const response = await api.post(`/api/courses/${courseId}/enroll`);
+
+      if (response.data.success) {
+        router.push("/my-courses");
+      }
+    } catch (error: any) {
+      console.error("Enrollment error:", error);
+      if (
+        error.response?.data?.message ===
+        "You are already enrolled in this course"
+      ) {
+        router.push("/my-courses");
+      } else {
+        alert(error.response?.data?.message || "Failed to enroll in course");
+      }
+    } finally {
+      setIsEnrolling(false);
     }
   };
 
@@ -1326,9 +1358,29 @@ export default function CourseManagementPage() {
                           Edit Course
                         </button>
                       )
+                    ) : isEnrolled ? (
+                      <button
+                        onClick={() =>
+                          router.push(`/courses/${courseId}/learn`)
+                        }
+                        className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        Continue Learning
+                      </button>
                     ) : (
-                      <button className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors cursor-pointer">
-                        Buy Now
+                      <button
+                        onClick={handleEnroll}
+                        disabled={isEnrolling}
+                        className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isEnrolling ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          "Buy Now"
+                        )}
                       </button>
                     )}
                     {!isEditingCourse && (

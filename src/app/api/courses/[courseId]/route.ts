@@ -1,6 +1,7 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
+import Enrollment from "@/models/Enrollment";
 import Module from "@/models/Module";
 import User from "@/models/User";
 import mongoose from "mongoose";
@@ -106,6 +107,7 @@ export async function GET(
                     $project: {
                       _id: 0,
                       duration: 1,
+                      videoUrl: 1,
                     },
                   },
                 ],
@@ -123,11 +125,22 @@ export async function GET(
       },
     ]);
 
+    let isEnrolled = false;
+    if (userId) {
+      const enrollment = await Enrollment.findOne({
+        student: userId,
+        course: courseId,
+      });
+      if (enrollment) {
+        isEnrolled = true;
+      }
+    }
+
     return Response.json(
       {
         success: true,
         message: "Course fetched successfully",
-        data: { course: course[0], modules: modulesWithLessons },
+        data: { course: course[0], modules: modulesWithLessons, isEnrolled },
       },
       { status: 200 }
     );

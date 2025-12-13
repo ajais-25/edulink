@@ -6,7 +6,10 @@ import User from "@/models/User";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { courseId: string } }
+) {
   await dbConnect();
 
   try {
@@ -34,7 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { courseId, rating } = await request.json();
+    const { courseId } = params;
+
+    const { rating } = await request.json();
 
     const course = await Course.findById(courseId);
 
@@ -60,6 +65,23 @@ export async function POST(request: NextRequest) {
           message: "You are not enrolled in this course",
         },
         { status: 403 }
+      );
+    }
+
+    const existingRatingIndex = course.ratings.findIndex(
+      (r) => r.userId.toString() === userId
+    );
+
+    if (existingRatingIndex !== -1) {
+      course.ratings[existingRatingIndex].rating = rating;
+      await course.save();
+
+      return Response.json(
+        {
+          success: true,
+          message: "Rating updated successfully",
+        },
+        { status: 200 }
       );
     }
 

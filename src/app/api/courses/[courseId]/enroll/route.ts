@@ -70,6 +70,21 @@ export async function POST(
       );
     }
 
+    const existingEnrollment = await Enrollment.findOne({
+      student: userId,
+      course: courseId,
+    });
+
+    if (existingEnrollment) {
+      return Response.json(
+        {
+          success: false,
+          message: "You are already enrolled in this course",
+        },
+        { status: 400 }
+      );
+    }
+
     await Enrollment.create({
       student: userId,
       course: courseId,
