@@ -88,9 +88,6 @@ export async function GET(
       });
     }
 
-    console.log(lesson);
-    console.log(quizAttempts);
-
     return Response.json(
       {
         success: true,

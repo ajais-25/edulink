@@ -13,9 +13,10 @@ export default function Navbar() {
   const { user } = useAppSelector((state) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isChangingRole, setIsChangingRole] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +90,11 @@ export default function Navbar() {
       router.push("/courses");
     }
   };
+
+  // Hide Navbar on quiz pages
+  if (pathname?.includes("/quiz/")) {
+    return null;
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">

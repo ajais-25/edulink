@@ -263,7 +263,7 @@ export default function CourseLearnPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowRatingModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-600/20 text-yellow-500 hover:bg-yellow-600/30 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-600/20 text-yellow-500 hover:bg-yellow-600/30 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
               <Star className="w-4 h-4" />
               Rate Course
@@ -378,14 +378,14 @@ export default function CourseLearnPage() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setShowRatingModal(false)}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRatingSubmit}
                 disabled={rating === 0 || isSubmittingRating}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmittingRating ? "Submitting..." : "Submit"}
               </button>
