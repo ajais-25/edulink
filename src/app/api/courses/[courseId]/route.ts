@@ -119,6 +119,32 @@ export async function GET(
                 preserveNullAndEmptyArrays: true,
               },
             },
+            {
+              $lookup: {
+                from: "quizzes",
+                localField: "quizId",
+                foreignField: "_id",
+                as: "quiz",
+                pipeline: [
+                  {
+                    $addFields: {
+                      questionCount: { $size: "$questions" },
+                    },
+                  },
+                  {
+                    $project: {
+                      questions: 0,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$quiz",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
           ],
           as: "lessons",
         },

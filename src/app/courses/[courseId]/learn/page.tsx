@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import ReactPlayer from "react-player";
+import QuizSummary from "@/components/QuizSummary";
+import QuizAttemptsList from "@/components/QuizAttemptsList";
 
 interface Video {
   duration: number;
@@ -26,6 +28,12 @@ interface Lesson {
   type: "video" | "quiz";
   video?: Video;
   isCompleted?: boolean;
+  quiz?: {
+    _id: string;
+    timeLimit: number;
+    passingScore: number;
+    questionCount: number;
+  };
 }
 
 interface Module {
@@ -57,6 +65,10 @@ export default function CourseLearnPage() {
   const [rating, setRating] = useState(0);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
+  const [quizDetails, setQuizDetails] = useState<any>(null);
+  const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
+  const [loadingLesson, setLoadingLesson] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -82,6 +94,41 @@ export default function CourseLearnPage() {
       fetchData();
     }
   }, [courseId]);
+
+  useEffect(() => {
+    const fetchQuizAttempts = async () => {
+      if (!activeLesson || !courseId) return;
+
+      if (activeLesson.type === "quiz" && activeLesson.quiz) {
+        setQuizDetails(activeLesson.quiz);
+      } else {
+        setQuizDetails(null);
+      }
+      setQuizAttempts([]);
+
+      if (activeLesson.type === "quiz") {
+        try {
+          setLoadingLesson(true);
+          const res = await api.get(
+            `/api/courses/${courseId}/modules/${activeLesson.moduleId}/lessons/${activeLesson._id}/quiz-result`
+          );
+
+          if (res.data.success) {
+            const attempts = res.data.data;
+            if (attempts) {
+              setQuizAttempts(attempts);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching quiz attempts:", error);
+        } finally {
+          setLoadingLesson(false);
+        }
+      }
+    };
+
+    fetchQuizAttempts();
+  }, [activeLesson, courseId]);
 
   const handleLessonSelect = (lesson: Lesson) => {
     setActiveLesson(lesson);
@@ -229,7 +276,13 @@ export default function CourseLearnPage() {
           <div className="w-full max-w-5xl space-y-6">
             {activeLesson ? (
               <>
-                <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl relative group">
+                <div
+                  className={`${
+                    activeLesson.type === "video"
+                      ? "aspect-video bg-black"
+                      : "bg-gray-900"
+                  } rounded-xl overflow-hidden shadow-2xl relative group`}
+                >
                   {activeLesson.type === "video" && activeLesson.video ? (
                     <ReactPlayer
                       src={activeLesson.video.videoUrl}
@@ -239,11 +292,25 @@ export default function CourseLearnPage() {
                       playing={false}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500">
-                      <div className="text-center">
-                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>This is a quiz lesson</p>
-                      </div>
+                    <div className="w-full h-full flex items-center justify-center bg-gray-900 border border-gray-800 rounded-xl">
+                      {activeLesson.type === "quiz" && quizDetails ? (
+                        <QuizSummary
+                          quiz={quizDetails}
+                          courseId={courseId as string}
+                          moduleId={activeLesson.moduleId}
+                          lessonId={activeLesson._id}
+                        />
+                      ) : (
+                        <div className="text-center py-12">
+                          <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50 text-gray-500" />
+                          <p className="text-gray-500">This is a quiz lesson</p>
+                          {loadingLesson && (
+                            <p className="text-sm mt-2 text-gray-500">
+                              Loading quiz details...
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -258,6 +325,14 @@ export default function CourseLearnPage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Quiz Attempts List - Moved below the title area */}
+                {activeLesson.type === "quiz" && (
+                  <QuizAttemptsList
+                    attempts={quizAttempts}
+                    isLoading={loadingLesson}
+                  />
+                )}
               </>
             ) : (
               <div className="flex items-center justify-center h-96 text-gray-500">

@@ -234,9 +234,6 @@ export async function GET(
   await dbConnect();
 
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const attemptId = searchParams.get("attemptId");
-
     const userId = getDataFromToken(request);
 
     if (!userId) {
@@ -336,32 +333,25 @@ export async function GET(
       );
     }
 
-    const quizAttempt = await QuizAttempt.findById(attemptId);
-
-    if (!quizAttempt || quizAttempt.student.toString() !== userId) {
-      return Response.json(
-        {
-          success: false,
-          message: "Invalid attempt id",
-        },
-        { status: 400 }
-      );
-    }
+    const quizAttempts = await QuizAttempt.find({
+      quizId: lessonQuiz._id,
+      student: userId,
+    });
 
     return Response.json(
       {
         success: true,
-        message: "Quiz attempt found",
-        data: quizAttempt,
+        message: "Quiz attempts found",
+        data: quizAttempts,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error getting quiz result");
+    console.error("Error getting quiz attempts");
     return Response.json(
       {
         success: false,
-        message: "Error getting quiz result",
+        message: "Error getting quiz attempts",
       },
       { status: 500 }
     );
