@@ -117,17 +117,20 @@ export async function POST(
       );
     }
 
-    await QuizAttempt.create({
+    const quizAttempt = await QuizAttempt.create({
       student: userId,
       quizId: lessonQuiz._id,
       status: "in_progress",
-      startedAt: Date.now,
+      startedAt: new Date(),
     });
 
     return Response.json(
       {
         success: true,
         message: "Quiz started",
+        data: {
+          attemptId: quizAttempt._id,
+        },
       },
       { status: 200 }
     );

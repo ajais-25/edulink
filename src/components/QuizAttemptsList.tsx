@@ -44,7 +44,11 @@ export default function QuizAttemptsList({
                     {attempt.passed ? "Passed" : "Failed"}
                   </div>
                   <div className="text-[10px] text-gray-500">
-                    {new Date(attempt.startedAt).toLocaleDateString()}
+                    {new Date(attempt.startedAt).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
                   </div>
                 </div>
               </div>

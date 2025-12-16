@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Clock, HelpCircle } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Clock, Loader2 } from "lucide-react";
+import api from "@/lib/axios";
 
 interface Question {
   questionNo: number;
@@ -21,27 +22,119 @@ interface Quiz {
 
 interface QuizInterfaceProps {
   quiz: Quiz;
+  courseId: string;
+  moduleId: string;
+  lessonId: string;
+  attemptId: string;
   onComplete?: (score: number, totalPoints: number) => void;
   onExit?: () => void;
 }
 
 export default function QuizInterface({
   quiz,
+  courseId,
+  moduleId,
+  lessonId,
+  attemptId,
   onComplete,
   onExit,
 }: QuizInterfaceProps) {
-  // Removed 'started' state as this component assumes it's being used in a dedicated view
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
   >({});
   const [showResults, setShowResults] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(quiz.timeLimit * 60); // Convert minutes to seconds
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTimerExpired, setIsTimerExpired] = useState(false);
+  const hasSubmittedRef = useRef(false);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
+  const submitQuiz = useCallback(async () => {
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+
+    setIsSubmitting(true);
+
+    try {
+      // Build responses array
+      const responses = quiz.questions.map((question, index) => ({
+        questionId: question.questionNo,
+        selectedOption: selectedAnswers[index] ?? -1, // -1 if not answered
+      }));
+
+      const res = await api.post(
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz-result?attemptId=${attemptId}`,
+        { responses }
+      );
+
+      if (res.data.success) {
+        setShowResults(true);
+        if (onComplete) {
+          const data = res.data.data;
+          onComplete(data.score, data.totalPoints);
+        }
+      }
+    } catch (error: any) {
+      console.error("Error submitting quiz:", error);
+      alert(error.response?.data?.message || "Failed to submit quiz");
+      hasSubmittedRef.current = false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    quiz.questions,
+    selectedAnswers,
+    courseId,
+    moduleId,
+    lessonId,
+    onComplete,
+  ]);
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (showResults || isSubmitting) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsTimerExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showResults, isSubmitting]);
+
+  // Auto-submit when timer expires
+  useEffect(() => {
+    if (isTimerExpired && !hasSubmittedRef.current) {
+      submitQuiz();
+    }
+  }, [isTimerExpired, submitQuiz]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const getTimerColor = () => {
+    if (timeRemaining <= 60)
+      return "text-red-500 bg-red-500/10 border-red-500/20";
+    if (timeRemaining <= 300)
+      return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
+    return "text-gray-300 bg-gray-800 border-gray-700";
+  };
+
   const handleOptionSelect = (optionIndex: number) => {
+    if (isSubmitting || isTimerExpired) return;
     setSelectedAnswers((prev) => ({
       ...prev,
       [currentQuestionIndex]: optionIndex,
@@ -61,13 +154,25 @@ export default function QuizInterface({
   };
 
   const handleFinish = () => {
-    setShowResults(true);
-    // Calculate score logic can be added here
-    if (onComplete) {
-      // Mock calculation or callback
-      onComplete(0, 0);
-    }
+    submitQuiz();
   };
+
+  // Submitting overlay
+  if (isSubmitting) {
+    return (
+      <div className="w-full h-full min-h-screen flex items-center justify-center p-6 bg-gray-900 text-white">
+        <div className="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center border border-gray-700 shadow-xl">
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Submitting Quiz...
+          </h2>
+          <p className="text-gray-400">
+            Please wait while we process your answers.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (showResults) {
     return (
@@ -102,9 +207,11 @@ export default function QuizInterface({
             <p className="text-sm text-gray-400">of {totalQuestions}</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 rounded-lg border border-gray-700 text-sm text-gray-300">
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${getTimerColor()}`}
+            >
               <Clock className="w-4 h-4" />
-              <span>{quiz.timeLimit}:00</span>
+              <span>{formatTime(timeRemaining)}</span>
             </div>
             {onExit && (
               <button
@@ -141,7 +248,8 @@ export default function QuizInterface({
                 <button
                   key={index}
                   onClick={() => handleOptionSelect(index)}
-                  className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 cursor-pointer group ${
+                  disabled={isTimerExpired}
+                  className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed ${
                     isSelected
                       ? "border-blue-500 bg-blue-500/10"
                       : "border-gray-700 bg-gray-800 hover:border-gray-600 hover:bg-gray-750"
@@ -182,7 +290,10 @@ export default function QuizInterface({
           </button>
           <button
             onClick={handleNext}
-            disabled={selectedAnswers[currentQuestionIndex] === undefined} // Optional: require answer to proceed
+            disabled={
+              selectedAnswers[currentQuestionIndex] === undefined ||
+              isTimerExpired
+            }
             className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLastQuestion ? "Finish Quiz" : "Next Question"}

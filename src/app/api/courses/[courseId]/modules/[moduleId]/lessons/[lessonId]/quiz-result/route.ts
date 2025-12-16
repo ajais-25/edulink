@@ -119,6 +119,19 @@ export async function POST(
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const attemptId = searchParams.get("attemptId");
+
+    if (!attemptId) {
+      return Response.json(
+        {
+          success: false,
+          message: "Attempt ID is required",
+        },
+        { status: 400 }
+      );
+    }
+
     const { responses } = await request.json();
 
     if (!responses) {
@@ -131,32 +144,34 @@ export async function POST(
       );
     }
 
-    const { quizResult, responses: newResponses } = getQuizResult(
-      responses,
-      lessonQuiz.questions
-    );
-
-    const quizAttempt = await QuizAttempt.findOne({ quizId: lessonQuiz._id });
+    const quizAttempt = await QuizAttempt.findOne({
+      _id: attemptId,
+      quizId: lessonQuiz._id,
+      student: userId,
+    });
 
     if (!quizAttempt) {
       return Response.json(
         {
           success: false,
-          message: "Error occured while submitting quiz",
+          message: "Quiz attempt not found",
         },
-        { status: 500 }
+        { status: 404 }
       );
     }
 
-    const { score, totalPoints, pointsEarned, passed } = quizResult;
+    const { score, totalPoints, passed, evaluatedResponses } = getQuizResult(
+      responses,
+      lessonQuiz.questions,
+      lessonQuiz.passingScore
+    );
 
-    quizAttempt.responses = newResponses;
+    quizAttempt.responses = evaluatedResponses;
     quizAttempt.score = score;
     quizAttempt.totalPoints = totalPoints;
-    quizAttempt.pointsEarned = pointsEarned;
     quizAttempt.passed = passed;
     quizAttempt.status = "completed";
-    quizAttempt.submittedAt = new Date(Date.now());
+    quizAttempt.submittedAt = new Date();
 
     await quizAttempt.save();
 
@@ -336,7 +351,8 @@ export async function GET(
     const quizAttempts = await QuizAttempt.find({
       quizId: lessonQuiz._id,
       student: userId,
-    });
+      status: "completed",
+    }).sort({ submittedAt: -1 });
 
     return Response.json(
       {

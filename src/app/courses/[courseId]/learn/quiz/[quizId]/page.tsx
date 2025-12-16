@@ -12,6 +12,7 @@ export default function QuizPage() {
 
   const moduleId = searchParams.get("moduleId");
   const lessonId = searchParams.get("lessonId");
+  const attemptId = searchParams.get("attemptId");
 
   const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -19,9 +20,9 @@ export default function QuizPage() {
 
   useEffect(() => {
     const fetchQuizDetails = async () => {
-      if (!courseId || !moduleId || !lessonId) {
+      if (!courseId || !moduleId || !lessonId || !attemptId) {
         setError(
-          "Missing required parameters: courseId, moduleId, or lessonId"
+          "Missing required parameters: courseId, moduleId, lessonId, or attemptId"
         );
         setLoading(false);
         return;
@@ -89,7 +90,14 @@ export default function QuizPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
-      <QuizInterface quiz={quiz} onExit={() => router.back()} />
+      <QuizInterface
+        quiz={quiz}
+        courseId={courseId as string}
+        moduleId={moduleId as string}
+        lessonId={lessonId as string}
+        attemptId={attemptId as string}
+        onExit={() => router.back()}
+      />
     </div>
   );
 }

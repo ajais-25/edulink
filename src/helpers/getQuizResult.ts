@@ -1,39 +1,54 @@
 import { Question } from "@/models/Quiz";
 import { Response } from "@/models/QuizAttempt";
 
-export function getQuizResult(responses: Response[], answers: Question[]) {
-  console.log("Response: ", responses);
-  console.log("Answers: ", answers);
+interface UserResponse {
+  questionId: number;
+  selectedOption: number;
+}
 
+export function getQuizResult(
+  userResponses: UserResponse[],
+  answers: Question[],
+  passingScore: number
+) {
   let totalPoints: number = 0;
-  let pointsEarned: number = 0;
-  for (let i = 0; i < answers.length; i++) {
-    totalPoints += answers[i].points;
+  let score: number = 0;
 
-    if (responses[i].selectedOption === answers[i].correctOption) {
-      pointsEarned += answers[i].points;
-      responses[i].isCorrect = true;
-      responses[i].points = answers[i].points;
-    } else {
-      responses[i].isCorrect = false;
-      responses[i].points = 0;
-    }
-    responses[i].explanation = answers[i].explanation;
+  for (const answer of answers) {
+    totalPoints += answer.points;
   }
 
-  const score = Math.round((pointsEarned / totalPoints) * 100);
+  let evaluatedResponses: Response[] = [];
+  for (const userResponse of userResponses) {
+    const answer = answers.find(
+      (a) => a.questionNo === userResponse.questionId
+    );
+
+    if (answer && userResponse.selectedOption === answer.correctOption) {
+      score += answer.points;
+    }
+
+    evaluatedResponses.push({
+      questionId: userResponse.questionId,
+      selectedOption: userResponse.selectedOption,
+      correctOption: answer ? answer.correctOption : -1,
+      isCorrect: answer
+        ? userResponse.selectedOption === answer.correctOption
+        : false,
+      points: answer ? answer.points : 0,
+      explanation: answer ? answer.explanation : "",
+    });
+  }
 
   let passed: boolean = false;
-  if (score >= 70) {
+  if (score >= passingScore) {
     passed = true;
   }
 
-  const quizResult = {
+  return {
     score,
     totalPoints,
-    pointsEarned,
     passed,
+    evaluatedResponses,
   };
-
-  return { quizResult, responses };
 }

@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Clock,
   HelpCircle,
   CheckCircle,
   PlayCircle,
-  RotateCcw,
+  Loader2,
 } from "lucide-react";
-import Link from "next/link";
+import api from "@/lib/axios";
 
 interface Question {
   questionNo: number;
@@ -39,7 +41,29 @@ export default function QuizSummary({
   moduleId,
   lessonId,
 }: QuizSummaryProps) {
+  const router = useRouter();
+  const [isStarting, setIsStarting] = useState(false);
   const totalQuestions = quiz.questionCount || quiz.questions?.length || 0;
+
+  const handleStartQuiz = async () => {
+    try {
+      setIsStarting(true);
+      const res = await api.post(
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/start-quiz`
+      );
+
+      if (res.data.success) {
+        const attemptId = res.data.data.attemptId;
+        router.push(
+          `/courses/${courseId}/learn/quiz/${quiz._id}?moduleId=${moduleId}&lessonId=${lessonId}&attemptId=${attemptId}`
+        );
+      }
+    } catch (error: any) {
+      console.error("Error starting quiz:", error);
+      alert(error.response?.data?.message || "Failed to start quiz");
+      setIsStarting(false);
+    }
+  };
 
   return (
     <div className="w-full flex flex-col items-center justify-center p-8 bg-gray-900">
@@ -69,7 +93,7 @@ export default function QuizSummary({
           <div className="bg-gray-700/50 p-3 rounded-lg">
             <div className="flex items-center justify-center gap-2 text-green-400 mb-1">
               <CheckCircle className="w-3.5 h-3.5" />
-              <span className="font-bold text-sm">{quiz.passingScore}%</span>
+              <span className="font-bold text-sm">{quiz.passingScore}</span>
             </div>
             <p className="text-[10px] text-gray-500 uppercase tracking-wider">
               Passing Score
@@ -77,13 +101,23 @@ export default function QuizSummary({
           </div>
         </div>
 
-        <Link
-          href={`/courses/${courseId}/learn/quiz/${quiz._id}?moduleId=${moduleId}&lessonId=${lessonId}`}
-          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-sm transition-all transform hover:scale-[1.02] w-full max-w-xs mx-auto"
+        <button
+          onClick={handleStartQuiz}
+          disabled={isStarting}
+          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-sm transition-all transform hover:scale-[1.02] w-full max-w-xs mx-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
         >
-          <PlayCircle className="w-4 h-4" />
-          Start Quiz
-        </Link>
+          {isStarting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Starting Quiz...
+            </>
+          ) : (
+            <>
+              <PlayCircle className="w-4 h-4" />
+              Start Quiz
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
