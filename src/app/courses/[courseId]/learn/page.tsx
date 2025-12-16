@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   BookOpen,
@@ -54,6 +54,7 @@ interface Course {
 export default function CourseLearnPage() {
   const { courseId } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
@@ -69,6 +70,12 @@ export default function CourseLearnPage() {
   const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
   const [loadingLesson, setLoadingLesson] = useState(false);
 
+  // Store initial URL params to avoid re-fetching on every URL change
+  const initialParamsRef = useRef({
+    moduleId: searchParams.get("moduleId"),
+    lessonId: searchParams.get("lessonId"),
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -78,9 +85,33 @@ export default function CourseLearnPage() {
           setCourse(res.data.data.course);
           setModules(res.data.data.modules);
 
-          const firstModule = res.data.data.modules[0];
-          if (firstModule && firstModule.lessons.length > 0) {
-            setActiveLesson(firstModule.lessons[0]);
+          const { moduleId: moduleIdFromUrl, lessonId: lessonIdFromUrl } =
+            initialParamsRef.current;
+
+          // Try to find lesson from URL params
+          let foundLesson: Lesson | null = null;
+          if (moduleIdFromUrl && lessonIdFromUrl) {
+            const targetModule = res.data.data.modules.find(
+              (m: Module) => m._id === moduleIdFromUrl
+            );
+            if (targetModule) {
+              foundLesson =
+                targetModule.lessons.find(
+                  (l: Lesson) => l._id === lessonIdFromUrl
+                ) || null;
+            }
+          }
+
+          // Fallback to first lesson if not found in URL
+          if (!foundLesson) {
+            const firstModule = res.data.data.modules[0];
+            if (firstModule && firstModule.lessons.length > 0) {
+              foundLesson = firstModule.lessons[0];
+            }
+          }
+
+          if (foundLesson) {
+            setActiveLesson(foundLesson);
           }
         }
       } catch (error) {
@@ -132,6 +163,15 @@ export default function CourseLearnPage() {
 
   const handleLessonSelect = (lesson: Lesson) => {
     setActiveLesson(lesson);
+
+    // Update URL with query params
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("moduleId", lesson.moduleId);
+    params.set("lessonId", lesson._id);
+    router.replace(`/courses/${courseId}/learn?${params.toString()}`, {
+      scroll: false,
+    });
+
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
     }

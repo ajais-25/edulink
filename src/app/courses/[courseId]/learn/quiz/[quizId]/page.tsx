@@ -88,6 +88,12 @@ export default function QuizPage() {
 
   if (!quiz) return null;
 
+  const handleExit = () => {
+    router.push(
+      `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <QuizInterface
@@ -96,7 +102,7 @@ export default function QuizPage() {
         moduleId={moduleId as string}
         lessonId={lessonId as string}
         attemptId={attemptId as string}
-        onExit={() => router.back()}
+        onExit={handleExit}
       />
     </div>
   );
