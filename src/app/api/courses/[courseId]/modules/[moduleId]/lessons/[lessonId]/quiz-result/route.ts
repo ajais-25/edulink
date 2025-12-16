@@ -351,8 +351,7 @@ export async function GET(
     const quizAttempts = await QuizAttempt.find({
       quizId: lessonQuiz._id,
       student: userId,
-      status: "completed",
-    }).sort({ submittedAt: -1 });
+    }).sort({ startedAt: -1 });
 
     return Response.json(
       {

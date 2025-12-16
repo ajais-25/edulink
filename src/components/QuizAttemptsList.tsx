@@ -38,10 +38,18 @@ export default function QuizAttemptsList({
                 <div>
                   <div
                     className={`font-semibold text-sm ${
-                      attempt.passed ? "text-green-400" : "text-red-400"
+                      attempt.status === "in_progress"
+                        ? "text-yellow-400"
+                        : attempt.passed
+                          ? "text-green-400"
+                          : "text-red-400"
                     }`}
                   >
-                    {attempt.passed ? "Passed" : "Failed"}
+                    {attempt.status === "in_progress"
+                      ? "In Progress"
+                      : attempt.passed
+                        ? "Passed"
+                        : "Failed"}
                   </div>
                   <div className="text-[10px] text-gray-500">
                     {new Date(attempt.startedAt).toLocaleDateString("en-GB", {
@@ -54,7 +62,9 @@ export default function QuizAttemptsList({
               </div>
               <div className="text-right">
                 <div className="text-sm font-bold text-white">
-                  {attempt.score}/{attempt.totalPoints}
+                  {attempt.status === "in_progress"
+                    ? "-"
+                    : `${attempt.score}/${attempt.totalPoints}`}
                 </div>
                 <div className="text-[10px] text-gray-500">Score</div>
               </div>

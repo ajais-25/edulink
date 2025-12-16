@@ -117,6 +117,25 @@ export async function POST(
       );
     }
 
+    const isUnfinishedAttempt = await QuizAttempt.findOne({
+      student: userId,
+      quizId: lessonQuiz._id,
+      status: "in_progress",
+    });
+
+    if (isUnfinishedAttempt) {
+      return Response.json(
+        {
+          success: false,
+          message: "You have an unfinished quiz attempt",
+          data: {
+            attemptId: isUnfinishedAttempt._id,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     const quizAttempt = await QuizAttempt.create({
       student: userId,
       quizId: lessonQuiz._id,

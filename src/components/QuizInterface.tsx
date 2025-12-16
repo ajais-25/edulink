@@ -39,12 +39,36 @@ export default function QuizInterface({
   onComplete,
   onExit,
 }: QuizInterfaceProps) {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const storageKey = `quiz_attempt_${attemptId}`;
+
+  const getInitialState = () => {
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.quizId === quiz._id && parsed.attemptId === attemptId) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error loading saved quiz state:", e);
+    }
+    return null;
+  };
+
+  const savedState = getInitialState();
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(
+    savedState?.currentQuestionIndex ?? 0
+  );
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
-  >({});
+  >(savedState?.selectedAnswers ?? {});
   const [showResults, setShowResults] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(quiz.timeLimit * 60); // Convert minutes to seconds
+  const [timeRemaining, setTimeRemaining] = useState(
+    savedState?.timeRemaining ?? quiz.timeLimit * 60
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
   const hasSubmittedRef = useRef(false);
@@ -53,6 +77,54 @@ export default function QuizInterface({
   const totalQuestions = quiz.questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
+  useEffect(() => {
+    if (showResults || hasSubmittedRef.current) return;
+
+    const stateToSave = {
+      quizId: quiz._id,
+      attemptId,
+      currentQuestionIndex,
+      selectedAnswers,
+      timeRemaining,
+      savedAt: Date.now(),
+    };
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(stateToSave));
+    } catch (e) {
+      console.error("Error saving quiz state:", e);
+    }
+  }, [
+    currentQuestionIndex,
+    selectedAnswers,
+    timeRemaining,
+    showResults,
+    quiz._id,
+    attemptId,
+    storageKey,
+  ]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!showResults && !hasSubmittedRef.current) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [showResults]);
+
+  const clearSavedState = useCallback(() => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (e) {
+      console.error("Error clearing saved quiz state:", e);
+    }
+  }, [storageKey]);
+
   const submitQuiz = useCallback(async () => {
     if (hasSubmittedRef.current) return;
     hasSubmittedRef.current = true;
@@ -60,10 +132,9 @@ export default function QuizInterface({
     setIsSubmitting(true);
 
     try {
-      // Build responses array
       const responses = quiz.questions.map((question, index) => ({
         questionId: question.questionNo,
-        selectedOption: selectedAnswers[index] ?? -1, // -1 if not answered
+        selectedOption: selectedAnswers[index] ?? -1,
       }));
 
       const res = await api.post(
@@ -72,6 +143,7 @@ export default function QuizInterface({
       );
 
       if (res.data.success) {
+        clearSavedState();
         setShowResults(true);
         if (onComplete) {
           const data = res.data.data;
@@ -92,14 +164,14 @@ export default function QuizInterface({
     moduleId,
     lessonId,
     onComplete,
+    clearSavedState,
   ]);
 
-  // Timer countdown effect
   useEffect(() => {
     if (showResults || isSubmitting) return;
 
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
+      setTimeRemaining((prev: number) => {
         if (prev <= 1) {
           clearInterval(timer);
           setIsTimerExpired(true);
@@ -112,7 +184,6 @@ export default function QuizInterface({
     return () => clearInterval(timer);
   }, [showResults, isSubmitting]);
 
-  // Auto-submit when timer expires
   useEffect(() => {
     if (isTimerExpired && !hasSubmittedRef.current) {
       submitQuiz();
@@ -143,21 +214,28 @@ export default function QuizInterface({
 
   const handleNext = () => {
     if (isLastQuestion) {
-      handleFinish();
+      handleSubmitWithConfirmation();
     } else {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex((prev: number) => prev + 1);
     }
   };
 
   const handlePrevious = () => {
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+    setCurrentQuestionIndex((prev: number) => Math.max(0, prev - 1));
   };
 
-  const handleFinish = () => {
-    submitQuiz();
+  const handleSubmitWithConfirmation = () => {
+    const unanswered =
+      quiz.questions.length - Object.keys(selectedAnswers).length;
+    const message =
+      unanswered > 0
+        ? `You have ${unanswered} unanswered question${unanswered > 1 ? "s" : ""}. Are you sure you want to submit?`
+        : "Are you sure you want to submit the quiz?";
+    if (window.confirm(message)) {
+      submitQuiz();
+    }
   };
 
-  // Submitting overlay
   if (isSubmitting) {
     return (
       <div className="w-full h-full min-h-screen flex items-center justify-center p-6 bg-gray-900 text-white">
@@ -215,10 +293,10 @@ export default function QuizInterface({
             </div>
             {onExit && (
               <button
-                onClick={onExit}
-                className="px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg border border-red-500/20 text-sm transition-colors cursor-pointer"
+                onClick={handleSubmitWithConfirmation}
+                className="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium text-sm transition-colors cursor-pointer shadow-md"
               >
-                Exit
+                Submit
               </button>
             )}
           </div>
