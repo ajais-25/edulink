@@ -1,6 +1,7 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
 import Course from "@/models/Course";
+import Enrollment from "@/models/Enrollment";
 import User from "@/models/User";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
@@ -37,9 +38,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get the list of course IDs the user is already enrolled in
+    const enrolledCourses = await Enrollment.find({ student: userId }).select(
+      "course"
+    );
+    const enrolledCourseIds = enrolledCourses.map((e) => e.course);
+
     const matchStage: any = {
       isPublished: true,
       instructor: { $ne: new mongoose.Types.ObjectId(userId) },
+      _id: { $nin: enrolledCourseIds },
     };
 
     if (search) {

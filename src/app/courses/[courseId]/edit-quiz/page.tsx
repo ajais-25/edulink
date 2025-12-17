@@ -12,14 +12,13 @@ import {
   FileText,
   Save,
   ArrowLeft,
-  X,
 } from "lucide-react";
 import api from "@/lib/axios";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface Question {
-  _id: number; // Internal unique ID for React state management
+  _id: number;
   questionNo: number;
   question: string;
   options: string[];
@@ -35,11 +34,12 @@ interface QuizData {
   questions: Question[];
 }
 
-function CreateQuizContent() {
+function EditQuizContent() {
   const router = useRouter();
   const { courseId } = useParams();
   const searchParams = useSearchParams();
   const moduleId = searchParams.get("moduleId");
+  const lessonId = searchParams.get("lessonId");
 
   const [quizData, setQuizData] = useState<QuizData>({
     title: "",
@@ -49,13 +49,53 @@ function CreateQuizContent() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!moduleId) {
-      // Redirect back to course page if no moduleId is provided
+    if (!moduleId || !lessonId) {
       router.push(`/courses/${courseId}`);
+      return;
     }
-  }, [moduleId, courseId, router]);
+
+    const fetchQuizData = async () => {
+      try {
+        setIsLoading(true);
+        const res = await api.get(
+          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
+        );
+
+        if (res.data.success) {
+          const lesson = res.data.data.lesson;
+          const quiz = lesson.quizId;
+
+          if (quiz) {
+            setQuizData({
+              title: lesson.title || "",
+              timeLimit: quiz.timeLimit || 10,
+              passingScore: quiz.passingScore || 70,
+              questions: quiz.questions.map((q: any, index: number) => ({
+                _id: Date.now() + index + Math.random(),
+                questionNo: q.questionNo || index + 1,
+                question: q.question || "",
+                options: q.options || ["", "", "", ""],
+                correctOption: q.correctOption || 0,
+                points: q.points || 10,
+                explanation: q.explanation || "",
+              })),
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching quiz data:", error);
+        alert("Failed to load quiz data");
+        router.push(`/courses/${courseId}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuizData();
+  }, [moduleId, lessonId, courseId, router]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -110,11 +150,11 @@ function CreateQuizContent() {
   };
 
   const handleSave = async () => {
-    if (!moduleId || !courseId) return;
+    if (!moduleId || !courseId || !lessonId) return;
 
     try {
       setIsSaving(true);
-      // Prepare questions for API: assign proper sequential questionNo and remove internal _id
+
       const questionsForApi = quizData.questions.map((q, index) => ({
         questionNo: index + 1,
         question: q.question,
@@ -124,26 +164,41 @@ function CreateQuizContent() {
         explanation: q.explanation,
       }));
 
-      await api.post(`/api/courses/${courseId}/modules/${moduleId}/lessons`, {
-        title: quizData.title || "New Quiz",
-        type: "quiz",
-        timeLimit: quizData.timeLimit,
-        passingScore: quizData.passingScore,
-        questions: questionsForApi,
-      });
+      // Update lesson title
+      await api.patch(
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
+        { title: quizData.title || "Quiz" }
+      );
 
-      // Redirect back to course page with expanded module
+      // Update quiz data
+      await api.patch(
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/update-quiz`,
+        {
+          timeLimit: quizData.timeLimit,
+          passingScore: quizData.passingScore,
+          questions: questionsForApi,
+        }
+      );
+
       router.push(`/courses/${courseId}?expandedModule=${moduleId}`);
     } catch (error) {
-      console.error("Error saving quiz", error);
-      alert("Failed to create quiz. Please try again.");
+      console.error("Error updating quiz", error);
+      alert("Failed to update quiz. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (!moduleId) {
-    return null; // Or a loading spinner while redirecting
+  if (!moduleId || !lessonId) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
@@ -162,7 +217,7 @@ function CreateQuizContent() {
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <HelpCircle className="w-5 h-5 text-blue-600" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Create Quiz</h1>
+              <h1 className="text-xl font-bold text-gray-900">Edit Quiz</h1>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -186,12 +241,12 @@ function CreateQuizContent() {
               {isSaving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Create Quiz
+                  Save Changes
                 </>
               )}
             </button>
@@ -468,7 +523,7 @@ function CreateQuizContent() {
   );
 }
 
-export default function CreateQuizPage() {
+export default function EditQuizPage() {
   return (
     <Suspense
       fallback={
@@ -477,7 +532,7 @@ export default function CreateQuizPage() {
         </div>
       }
     >
-      <CreateQuizContent />
+      <EditQuizContent />
     </Suspense>
   );
 }

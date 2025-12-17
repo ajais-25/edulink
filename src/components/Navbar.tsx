@@ -91,8 +91,8 @@ export default function Navbar() {
     }
   };
 
-  // Hide Navbar on quiz pages
-  if (pathname?.includes("/quiz/") || pathname?.includes("/quiz-result/")) {
+  // Hide Navbar on learn pages
+  if (pathname?.includes("/learn/")) {
     return null;
   }
 

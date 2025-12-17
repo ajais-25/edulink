@@ -69,6 +69,7 @@ export default function CourseLearnPage() {
   const [quizDetails, setQuizDetails] = useState<any>(null);
   const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
   const [loadingLesson, setLoadingLesson] = useState(false);
+  const [overallProgress, setOverallProgress] = useState(0);
 
   // Store initial URL params to avoid re-fetching on every URL change
   const initialParamsRef = useRef({
@@ -84,6 +85,7 @@ export default function CourseLearnPage() {
         if (res.data.success) {
           setCourse(res.data.data.course);
           setModules(res.data.data.modules);
+          setOverallProgress(res.data.data.overallProgress || 0);
 
           const { moduleId: moduleIdFromUrl, lessonId: lessonIdFromUrl } =
             initialParamsRef.current;
@@ -213,14 +215,30 @@ export default function CourseLearnPage() {
           sidebarOpen ? "w-80" : "w-0"
         } bg-gray-800 border-r border-gray-700 transition-all duration-300 ease-in-out flex flex-col relative z-20 overflow-hidden`}
       >
-        <div className="h-16 px-4 border-b border-gray-700 flex items-center justify-between min-w-[320px]">
-          <h2 className="font-bold text-lg truncate pr-4">{course.title}</h2>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="p-1 hover:bg-gray-700 rounded-lg lg:hidden"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        <div className="border-b border-gray-700 min-w-[320px]">
+          <div className="h-16 px-4 flex items-center justify-between">
+            <h2 className="font-bold text-lg truncate pr-4">{course.title}</h2>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1 hover:bg-gray-700 rounded-lg lg:hidden"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="px-4 pb-3">
+            <div className="flex items-center justify-between text-sm mb-1">
+              <span className="text-gray-400">Progress</span>
+              <span className="text-white font-medium">
+                {Math.round(overallProgress)}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${overallProgress}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto min-w-[320px]">

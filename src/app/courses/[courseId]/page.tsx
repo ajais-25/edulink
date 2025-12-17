@@ -127,9 +127,15 @@ export default function CourseManagementPage() {
   const [showVideoUploadModal, setShowVideoUploadModal] = useState<
     string | null
   >(null);
+  const [showUpdateVideoModal, setShowUpdateVideoModal] = useState<{
+    moduleId: string;
+    lessonId: string;
+  } | null>(null);
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoTitle, setVideoTitle] = useState<string>("");
+  const [isUpdatingVideo, setIsUpdatingVideo] = useState(false);
+  const [updateVideoProgress, setUpdateVideoProgress] = useState(0);
 
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
@@ -138,6 +144,7 @@ export default function CourseManagementPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [overallProgress, setOverallProgress] = useState(0);
   const [priceInput, setPriceInput] = useState<string>("");
 
   // Learnings state
@@ -245,6 +252,69 @@ export default function CourseManagementPage() {
     }
   };
 
+  const handleVideoUpdate = async () => {
+    if (!videoFile || !showUpdateVideoModal) {
+      alert("Please select a video file");
+      return;
+    }
+
+    const { moduleId, lessonId } = showUpdateVideoModal;
+    const file = videoFile;
+    setIsUpdatingVideo(true);
+
+    let authParams;
+    try {
+      authParams = await authenticator();
+    } catch (authError) {
+      console.error("Failed to authenticate for upload:", authError);
+      setIsUpdatingVideo(false);
+      return;
+    }
+    const { signature, expire, token, publicKey } = authParams;
+
+    try {
+      const uploadResponse = await upload({
+        expire,
+        token,
+        signature,
+        publicKey,
+        file,
+        fileName: file.name,
+        onProgress: (event) => {
+          setUpdateVideoProgress((event.loaded / event.total) * 100);
+        },
+        abortSignal: abortController.signal,
+      });
+
+      await api.patch(
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/update-video`,
+        { imagekit: uploadResponse }
+      );
+
+      // Close modal and refresh data
+      setShowUpdateVideoModal(null);
+      setVideoFile(null);
+      setUpdateVideoProgress(0);
+      fetchData(false);
+      alert("Video updated successfully!");
+    } catch (error) {
+      if (error instanceof ImageKitAbortError) {
+        console.error("Upload aborted:", error.reason);
+      } else if (error instanceof ImageKitInvalidRequestError) {
+        console.error("Invalid request:", error.message);
+      } else if (error instanceof ImageKitUploadNetworkError) {
+        console.error("Network error:", error.message);
+      } else if (error instanceof ImageKitServerError) {
+        console.error("Server error:", error.message);
+      } else {
+        console.error("Upload error:", error);
+      }
+      alert("Failed to update video. Please try again.");
+    } finally {
+      setIsUpdatingVideo(false);
+    }
+  };
+
   const fetchData = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
@@ -253,10 +323,12 @@ export default function CourseManagementPage() {
       const fetchedCourse = res.data.data.course;
       const fetchedModules: UIModule[] = res.data.data.modules;
       const enrolledStatus = res.data.data.isEnrolled;
+      const progress = res.data.data.overallProgress || 0;
 
       setCourse(fetchedCourse);
       setModules(fetchedModules);
       setIsEnrolled(enrolledStatus);
+      setOverallProgress(progress);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -815,9 +887,9 @@ export default function CourseManagementPage() {
                 <div className="flex items-center gap-1 text-gray-400 text-sm ml-4">
                   <Clock className="w-4 h-4" />
                   <span>
-                    Last updated{" "}
-                    {displayCourse.updatedAt
-                      ? new Date(displayCourse.updatedAt).toLocaleDateString(
+                    Created on{" "}
+                    {displayCourse.createdAt
+                      ? new Date(displayCourse.createdAt).toLocaleDateString(
                           "en-GB"
                         )
                       : "Recently"}
@@ -1138,12 +1210,9 @@ export default function CourseManagementPage() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <a
-                                    href="#"
-                                    className="text-sm text-gray-700 hover:text-blue-600 group-hover:underline"
-                                  >
+                                  <div className="text-sm text-gray-700">
                                     {lesson.title}
-                                  </a>
+                                  </div>
                                 )}
                               </div>
 
@@ -1157,6 +1226,33 @@ export default function CourseManagementPage() {
                                 )}
                                 {isCourseInstructor && (
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {lesson.type === "video" && (
+                                      <button
+                                        onClick={() =>
+                                          setShowUpdateVideoModal({
+                                            moduleId: module._id,
+                                            lessonId: lesson._id,
+                                          })
+                                        }
+                                        className="p-1 hover:bg-blue-100 rounded text-blue-600 cursor-pointer"
+                                        title="Update Video"
+                                      >
+                                        <Video className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                    {lesson.type === "quiz" && (
+                                      <button
+                                        onClick={() =>
+                                          router.push(
+                                            `/courses/${courseId}/edit-quiz?moduleId=${module._id}&lessonId=${lesson._id}`
+                                          )
+                                        }
+                                        className="p-1 hover:bg-blue-100 rounded text-blue-600 cursor-pointer"
+                                        title="Edit Quiz"
+                                      >
+                                        <HelpCircle className="w-3 h-3" />
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() =>
                                         handleLessonEdit(module._id, lesson._id)
@@ -1359,14 +1455,30 @@ export default function CourseManagementPage() {
                         </button>
                       )
                     ) : isEnrolled ? (
-                      <button
-                        onClick={() =>
-                          router.push(`/courses/${courseId}/learn`)
-                        }
-                        className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                      >
-                        Continue Learning
-                      </button>
+                      <>
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span className="text-gray-600">Your Progress</span>
+                            <span className="text-gray-900 font-medium">
+                              {Math.round(overallProgress)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                              style={{ width: `${overallProgress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() =>
+                            router.push(`/courses/${courseId}/learn`)
+                          }
+                          className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          Continue Learning
+                        </button>
+                      </>
                     ) : (
                       <button
                         onClick={handleEnroll}
@@ -1670,6 +1782,151 @@ export default function CourseManagementPage() {
                   setVideoTitle("");
                 }}
                 disabled={isUploading}
+                className="px-5 py-3 bg-white border-2 border-gray-200 cursor-pointer text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Video Modal */}
+      {showUpdateVideoModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300"
+            style={{ animationFillMode: "forwards" }}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Video className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Update Video</h3>
+                  <p className="text-blue-100 text-sm">
+                    Replace the existing video with a new one
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-5">
+              {/* Upload Zone */}
+              <div
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
+                  isUpdatingVideo
+                    ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                    : videoFile
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
+                }`}
+              >
+                {!videoFile ? (
+                  <>
+                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Upload className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <p className="text-gray-700 font-medium mb-1">
+                      Drag and drop your new video file here
+                    </p>
+                    <p className="text-gray-500 text-sm mb-4">
+                      Supports MP4, MOV, AVI, and more
+                    </p>
+                    <label className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 cursor-pointer transition-colors shadow-md shadow-blue-200">
+                      <Upload className="w-4 h-4" />
+                      Browse Files
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleVideoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Check className="w-7 h-7 text-green-600" />
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-gray-900 font-semibold truncate">
+                        {videoFile.name}
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                      </p>
+                    </div>
+                    {!isUpdatingVideo && (
+                      <button
+                        onClick={() => setVideoFile(null)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Progress bar (shows during upload) */}
+              {(isUpdatingVideo || updateVideoProgress > 0) && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 font-medium">
+                      {isUpdatingVideo
+                        ? "Uploading & Processing..."
+                        : "Upload complete"}
+                    </span>
+                    <span className="text-blue-600 font-semibold">
+                      {Math.round(updateVideoProgress)}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300"
+                      style={{ width: `${updateVideoProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={handleVideoUpdate}
+                disabled={!videoFile || isUpdatingVideo}
+                className={`flex-1 px-5 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                  videoFile && !isUpdatingVideo
+                    ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md shadow-blue-200 cursor-pointer"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {isUpdatingVideo ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Update Video
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setShowUpdateVideoModal(null);
+                  setVideoFile(null);
+                  setUpdateVideoProgress(0);
+                }}
+                disabled={isUpdatingVideo}
                 className="px-5 py-3 bg-white border-2 border-gray-200 cursor-pointer text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel

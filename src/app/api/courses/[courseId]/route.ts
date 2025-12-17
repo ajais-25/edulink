@@ -152,6 +152,7 @@ export async function GET(
     ]);
 
     let isEnrolled = false;
+    let overallProgress = 0;
     if (userId) {
       const enrollment = await Enrollment.findOne({
         student: userId,
@@ -159,6 +160,7 @@ export async function GET(
       });
       if (enrollment) {
         isEnrolled = true;
+        overallProgress = enrollment.overallProgress;
       }
     }
 
@@ -166,7 +168,12 @@ export async function GET(
       {
         success: true,
         message: "Course fetched successfully",
-        data: { course: course[0], modules: modulesWithLessons, isEnrolled },
+        data: {
+          course: course[0],
+          modules: modulesWithLessons,
+          isEnrolled,
+          overallProgress,
+        },
       },
       { status: 200 }
     );
