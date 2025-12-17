@@ -1,14 +1,35 @@
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface QuizAttemptsListProps {
   attempts: any[];
   isLoading: boolean;
+  courseId: string;
+  moduleId: string;
+  lessonId: string;
 }
 
 export default function QuizAttemptsList({
   attempts,
   isLoading,
+  courseId,
+  moduleId,
+  lessonId,
 }: QuizAttemptsListProps) {
+  const router = useRouter();
+
+  const handleAttemptClick = (attempt: any) => {
+    if (attempt.status === "in_progress") {
+      router.push(
+        `/courses/${courseId}/learn/quiz/${attempt.quizId}?moduleId=${moduleId}&lessonId=${lessonId}&attemptId=${attempt._id}`
+      );
+    } else {
+      router.push(
+        `/courses/${courseId}/learn/quiz-result/${attempt._id}?moduleId=${moduleId}&lessonId=${lessonId}`
+      );
+    }
+  };
+
   if (!attempts.length && !isLoading) return null;
 
   return (
@@ -29,7 +50,8 @@ export default function QuizAttemptsList({
           attempts.map((attempt, index) => (
             <div
               key={attempt._id || index}
-              className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border border-gray-700/50 hover:bg-gray-700/50 transition-colors"
+              onClick={() => handleAttemptClick(attempt)}
+              className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border border-gray-700/50 hover:bg-gray-700/50 transition-colors cursor-pointer group"
             >
               <div className="flex items-center gap-3">
                 <span className="text-gray-500 font-mono text-xs w-6">
@@ -52,7 +74,7 @@ export default function QuizAttemptsList({
                         : "Failed"}
                   </div>
                   <div className="text-[10px] text-gray-500">
-                    {new Date(attempt.startedAt).toLocaleDateString("en-GB", {
+                    {new Date(attempt.updatedAt).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
@@ -60,13 +82,18 @@ export default function QuizAttemptsList({
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-sm font-bold text-white">
-                  {attempt.status === "in_progress"
-                    ? "-"
-                    : `${attempt.score}/${attempt.totalPoints}`}
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-sm font-bold text-white">
+                    {attempt.status === "in_progress"
+                      ? "-"
+                      : `${attempt.score}/${attempt.totalPoints}`}
+                  </div>
+                  <div className="text-[10px] text-gray-500">
+                    {attempt.status === "in_progress" ? "Continue" : "Score"}
+                  </div>
                 </div>
-                <div className="text-[10px] text-gray-500">Score</div>
+                <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
               </div>
             </div>
           ))}

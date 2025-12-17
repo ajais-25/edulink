@@ -371,6 +371,9 @@ export default function CourseLearnPage() {
                   <QuizAttemptsList
                     attempts={quizAttempts}
                     isLoading={loadingLesson}
+                    courseId={courseId as string}
+                    moduleId={activeLesson.moduleId}
+                    lessonId={activeLesson._id}
                   />
                 )}
               </>

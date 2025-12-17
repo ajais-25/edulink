@@ -18,7 +18,7 @@ export async function GET(
       courseId: string;
       moduleId: string;
       lessonId: string;
-      resultId: string;
+      attemptId: string;
     };
   }
 ) {
@@ -59,7 +59,7 @@ export async function GET(
       );
     }
 
-    const { courseId, moduleId, lessonId, resultId } = params;
+    const { courseId, moduleId, lessonId, attemptId } = params;
 
     const course = await Course.findById(courseId);
 
@@ -124,7 +124,7 @@ export async function GET(
       );
     }
 
-    const quizAttempt = await QuizAttempt.findById(resultId);
+    const quizAttempt = await QuizAttempt.findById(attemptId);
 
     if (!quizAttempt || quizAttempt.student.toString() !== userId) {
       return Response.json(

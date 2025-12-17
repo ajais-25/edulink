@@ -92,7 +92,7 @@ export default function Navbar() {
   };
 
   // Hide Navbar on quiz pages
-  if (pathname?.includes("/quiz/")) {
+  if (pathname?.includes("/quiz/") || pathname?.includes("/quiz-result/")) {
     return null;
   }
 
