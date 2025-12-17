@@ -23,6 +23,7 @@ import {
 import { useAppDispatch } from "@/redux/hooks";
 import api from "@/lib/axios";
 import { setUser } from "@/redux/slices/user";
+import toast from "react-hot-toast";
 
 interface SocialLinks {
   linkedIn?: string;
@@ -51,7 +52,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -93,7 +93,7 @@ export default function ProfilePage() {
   const handleUpload = async () => {
     const fileInput = fileInputRef.current;
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-      alert("Please select a file to upload");
+      toast.error("Please select a file to upload");
       return;
     }
 
@@ -165,7 +165,7 @@ export default function ProfilePage() {
       }
     } catch (err: any) {
       console.error("Failed to fetch profile", err);
-      setError("Failed to load profile data.");
+      toast.error("Failed to load profile data.");
     } finally {
       setLoading(false);
     }
@@ -181,17 +181,17 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError("");
 
     try {
       const response = await api.patch("/api/users/profile", formData);
       if (response.data.success) {
         setUserData(response.data.data);
         setIsEditing(false);
+        toast.success("Profile updated successfully!");
       }
     } catch (err: any) {
       console.error("Failed to update profile", err);
-      setError(err.response?.data?.message || "Failed to update profile.");
+      toast.error(err.response?.data?.message || "Failed to update profile.");
     } finally {
       setSaving(false);
     }
@@ -309,17 +309,6 @@ export default function ProfilePage() {
 
           {/* Right Column: Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm border border-red-100 flex items-center gap-2">
-                <X
-                  className="h-4 w-4 cursor-pointer"
-                  onClick={() => setError("")}
-                />
-                {error}
-              </div>
-            )}
-
             {/* Personal Information */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="border-b border-gray-100 px-6 py-4">

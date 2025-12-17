@@ -18,6 +18,7 @@ import {
 import api from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 interface Thumbnail {
   fileId: string;
@@ -117,12 +118,12 @@ export default function CreateCoursePage() {
       !formData.category ||
       !formData.price
     ) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
     if (!formData.thumbnailFile) {
-      alert("Please select a thumbnail image");
+      toast.error("Please select a thumbnail image");
       return;
     }
 
@@ -184,7 +185,7 @@ export default function CreateCoursePage() {
       } else {
         console.error("Upload error:", error);
       }
-      alert("Failed to create course. Please try again.");
+      toast.error("Failed to create course. Please try again.");
       setLoading(false); // Only reset loading on error, on success we redirect
       setProgress(0);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { X, Upload, Loader2, Image as ImageIcon } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   ImageKitAbortError,
   ImageKitInvalidRequestError,
@@ -120,12 +121,12 @@ export default function CreateCourseModal({
       !formData.category ||
       !formData.price
     ) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
     if (!formData.thumbnailFile) {
-      alert("Please select a thumbnail image");
+      toast.error("Please select a thumbnail image");
       return;
     }
 
@@ -196,7 +197,7 @@ export default function CreateCourseModal({
       } else {
         console.error("Upload error:", error);
       }
-      alert("Failed to create course. Please try again.");
+      toast.error("Failed to create course. Please try again.");
     } finally {
       setLoading(false);
       setProgress(0);

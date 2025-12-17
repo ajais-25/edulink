@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import api from "@/lib/axios";
+import toast from "react-hot-toast";
 
 interface Question {
   questionNo: number;
@@ -60,7 +61,7 @@ export default function QuizSummary({
       }
     } catch (error: any) {
       console.error("Error starting quiz:", error);
-      alert(error.response?.data?.message || "Failed to start quiz");
+      toast.error(error.response?.data?.message || "Failed to start quiz");
       setIsStarting(false);
     }
   };

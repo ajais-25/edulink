@@ -17,6 +17,7 @@ import {
 import api from "@/lib/axios";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 interface Question {
   _id: number; // Internal unique ID for React state management
@@ -136,7 +137,7 @@ function CreateQuizContent() {
       router.push(`/courses/${courseId}?expandedModule=${moduleId}`);
     } catch (error) {
       console.error("Error saving quiz", error);
-      alert("Failed to create quiz. Please try again.");
+      toast.error("Failed to create quiz. Please try again.");
     } finally {
       setIsSaving(false);
     }

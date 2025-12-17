@@ -16,6 +16,7 @@ import {
 import api from "@/lib/axios";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 interface Question {
   _id: number;
@@ -87,7 +88,7 @@ function EditQuizContent() {
         }
       } catch (error) {
         console.error("Error fetching quiz data:", error);
-        alert("Failed to load quiz data");
+        toast.error("Failed to load quiz data");
         router.push(`/courses/${courseId}`);
       } finally {
         setIsLoading(false);
@@ -183,7 +184,7 @@ function EditQuizContent() {
       router.push(`/courses/${courseId}?expandedModule=${moduleId}`);
     } catch (error) {
       console.error("Error updating quiz", error);
-      alert("Failed to update quiz. Please try again.");
+      toast.error("Failed to update quiz. Please try again.");
     } finally {
       setIsSaving(false);
     }

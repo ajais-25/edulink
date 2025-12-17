@@ -32,6 +32,7 @@ import {
   upload,
 } from "@imagekit/next";
 import { useAppSelector } from "@/redux/hooks";
+import toast from "react-hot-toast";
 
 interface Thumbnail {
   fileId: string;
@@ -183,7 +184,7 @@ export default function CourseManagementPage() {
 
   const handleUpload = async (moduleId: string) => {
     if (!videoFile) {
-      alert("Please select a file to upload");
+      toast.error("Please select a file to upload");
       return;
     }
 
@@ -246,7 +247,7 @@ export default function CourseManagementPage() {
       } else {
         console.error("Upload error:", error);
       }
-      alert("Failed to upload video. Please try again.");
+      toast.error("Failed to upload video. Please try again.");
     } finally {
       setIsUploading(false);
     }
@@ -254,7 +255,7 @@ export default function CourseManagementPage() {
 
   const handleVideoUpdate = async () => {
     if (!videoFile || !showUpdateVideoModal) {
-      alert("Please select a video file");
+      toast.error("Please select a video file");
       return;
     }
 
@@ -296,7 +297,7 @@ export default function CourseManagementPage() {
       setVideoFile(null);
       setUpdateVideoProgress(0);
       fetchData(false);
-      alert("Video updated successfully!");
+      toast.success("Video updated successfully!");
     } catch (error) {
       if (error instanceof ImageKitAbortError) {
         console.error("Upload aborted:", error.reason);
@@ -309,7 +310,7 @@ export default function CourseManagementPage() {
       } else {
         console.error("Upload error:", error);
       }
-      alert("Failed to update video. Please try again.");
+      toast.error("Failed to update video. Please try again.");
     } finally {
       setIsUpdatingVideo(false);
     }
@@ -439,7 +440,7 @@ export default function CourseManagementPage() {
       }
     } catch (error) {
       console.error("Error updating thumbnail:", error);
-      alert("Failed to update thumbnail");
+      toast.error("Failed to update thumbnail");
     } finally {
       setIsUploadingThumbnail(false);
     }
@@ -458,7 +459,7 @@ export default function CourseManagementPage() {
       }
     } catch (error) {
       console.error("Error toggling publish status:", error);
-      alert("Failed to update publish status");
+      toast.error("Failed to update publish status");
     } finally {
       setIsPublishing(false);
     }
@@ -554,7 +555,7 @@ export default function CourseManagementPage() {
       }
     } catch (error) {
       console.error("Error creating module", error);
-      alert("Failed to create module");
+      toast.error("Failed to create module");
     }
   };
 
@@ -610,17 +611,28 @@ export default function CourseManagementPage() {
       setModules(modules.filter((m) => m._id !== moduleId));
     } catch (error) {
       console.error("Error deleting module:", error);
-      alert("Failed to delete module");
+      toast.error("Failed to delete module");
     }
   };
 
   const deleteLesson = async (moduleId: string, lessonId: string) => {
+    const module = modules.find((m) => m._id === moduleId);
+    const lesson = module?.lessons.find((l) => l._id === lessonId);
+
+    const isConfirmed = window.confirm(
+      `Are you sure you want to delete the lesson "${lesson?.title || "this lesson"}"?`
+    );
+
+    if (!isConfirmed) return;
+
     try {
       await api.delete(
         `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
       );
     } catch (error) {
       console.error("Error deleting lesson:", error);
+      toast.error("Failed to delete lesson");
+      return;
     }
 
     setModules(
@@ -742,7 +754,9 @@ export default function CourseManagementPage() {
       ) {
         router.push("/my-courses");
       } else {
-        alert(error.response?.data?.message || "Failed to enroll in course");
+        toast.error(
+          error.response?.data?.message || "Failed to enroll in course"
+        );
       }
     } finally {
       setIsEnrolling(false);

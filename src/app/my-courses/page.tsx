@@ -6,12 +6,12 @@ import CourseCard, { Course } from "@/components/CourseCard";
 import { useAppSelector } from "@/redux/hooks";
 import { Loader2, Plus } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function MyCoursesPage() {
   const { user } = useAppSelector((state) => state.user);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -34,7 +34,7 @@ export default function MyCoursesPage() {
         }
       } catch (err: any) {
         console.error("Error fetching courses:", err);
-        setError("Failed to fetch your courses. Please try again later.");
+        toast.error("Failed to fetch your courses. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -51,25 +51,6 @@ export default function MyCoursesPage() {
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           <p className="text-gray-500 font-medium">Loading your courses...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Oops! Something went wrong
-          </h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     );

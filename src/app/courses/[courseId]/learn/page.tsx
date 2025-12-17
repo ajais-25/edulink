@@ -15,6 +15,7 @@ import api from "@/lib/axios";
 import ReactPlayer from "react-player";
 import QuizSummary from "@/components/QuizSummary";
 import QuizAttemptsList from "@/components/QuizAttemptsList";
+import toast from "react-hot-toast";
 
 interface Video {
   duration: number;
@@ -187,11 +188,11 @@ export default function CourseLearnPage() {
       await api.post(`/api/courses/${courseId}/give-rating`, {
         rating,
       });
-      alert("Thank you for your rating!");
+      toast.success("Thank you for your rating!");
       setShowRatingModal(false);
     } catch (error: any) {
       console.error("Error submitting rating:", error);
-      alert(error.response?.data?.message || "Failed to submit rating");
+      toast.error(error.response?.data?.message || "Failed to submit rating");
     } finally {
       setIsSubmittingRating(false);
     }

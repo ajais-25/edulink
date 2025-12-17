@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Clock, Loader2 } from "lucide-react";
 import api from "@/lib/axios";
+import toast from "react-hot-toast";
 
 interface Question {
   questionNo: number;
@@ -152,7 +153,7 @@ export default function QuizInterface({
       }
     } catch (error: any) {
       console.error("Error submitting quiz:", error);
-      alert(error.response?.data?.message || "Failed to submit quiz");
+      toast.error(error.response?.data?.message || "Failed to submit quiz");
       hasSubmittedRef.current = false;
     } finally {
       setIsSubmitting(false);
