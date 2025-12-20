@@ -12,7 +12,9 @@ export async function PATCH(
   request: NextRequest,
   {
     params,
-  }: { params: { courseId: string; moduleId: string; lessonId: string } }
+  }: {
+    params: Promise<{ courseId: string; moduleId: string; lessonId: string }>;
+  }
 ) {
   await dbConnect();
 
@@ -51,7 +53,7 @@ export async function PATCH(
       );
     }
 
-    const { courseId, moduleId, lessonId } = params;
+    const { courseId, moduleId, lessonId } = await params;
 
     const course = await Course.findById(courseId);
 

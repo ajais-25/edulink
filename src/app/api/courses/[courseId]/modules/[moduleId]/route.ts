@@ -8,7 +8,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string; moduleId: string } }
+  { params }: { params: Promise<{ courseId: string; moduleId: string }> }
 ) {
   await dbConnect();
 
@@ -37,7 +37,7 @@ export async function GET(
       );
     }
 
-    const { courseId, moduleId } = params;
+    const { courseId, moduleId } = await params;
 
     const course = await Course.findById(courseId);
 
@@ -89,7 +89,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { courseId: string; moduleId: string } }
+  { params }: { params: Promise<{ courseId: string; moduleId: string }> }
 ) {
   await dbConnect();
 
@@ -128,7 +128,7 @@ export async function PATCH(
       );
     }
 
-    const { courseId, moduleId } = params;
+    const { courseId, moduleId } = await params;
 
     const course = await Course.findById(courseId);
 
@@ -211,7 +211,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { courseId: string; moduleId: string } }
+  { params }: { params: Promise<{ courseId: string; moduleId: string }> }
 ) {
   await dbConnect();
 
@@ -250,7 +250,7 @@ export async function DELETE(
       );
     }
 
-    const { courseId, moduleId } = params;
+    const { courseId, moduleId } = await params;
 
     const course = await Course.findById(courseId);
 

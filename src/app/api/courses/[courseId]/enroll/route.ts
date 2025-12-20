@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   await dbConnect();
 
@@ -46,7 +46,7 @@ export async function POST(
       );
     }
 
-    const { courseId } = params;
+    const { courseId } = await params;
 
     const course = await Course.findById(courseId);
 

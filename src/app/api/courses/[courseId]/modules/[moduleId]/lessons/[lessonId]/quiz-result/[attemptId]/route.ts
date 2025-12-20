@@ -14,12 +14,12 @@ export async function GET(
   {
     params,
   }: {
-    params: {
+    params: Promise<{
       courseId: string;
       moduleId: string;
       lessonId: string;
       attemptId: string;
-    };
+    }>;
   }
 ) {
   await dbConnect();
@@ -59,7 +59,7 @@ export async function GET(
       );
     }
 
-    const { courseId, moduleId, lessonId, attemptId } = params;
+    const { courseId, moduleId, lessonId, attemptId } = await params;
 
     const course = await Course.findById(courseId);
 
