@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   BookOpen,
+  CheckCircle,
   ChevronLeft,
   Menu,
   PlayCircle,
@@ -253,13 +254,15 @@ export default function CourseLearnPage() {
                   <button
                     key={lesson._id}
                     onClick={() => handleLessonSelect(lesson)}
-                    className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-gray-750 transition-colors ${
+                    className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-all duration-200 ${
                       activeLesson?._id === lesson._id
                         ? "bg-gray-700 border-l-4 border-blue-500"
-                        : "border-l-4 border-transparent"
+                        : "border-l-4 border-transparent hover:bg-gray-700/50 hover:border-gray-500"
                     }`}
                   >
-                    {lesson.type === "video" ? (
+                    {lesson.isCompleted ? (
+                      <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-500" />
+                    ) : lesson.type === "video" ? (
                       <PlayCircle
                         className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
                           activeLesson?._id === lesson._id
@@ -274,7 +277,9 @@ export default function CourseLearnPage() {
                       className={`text-sm ${
                         activeLesson?._id === lesson._id
                           ? "text-white font-medium"
-                          : "text-gray-400"
+                          : lesson.isCompleted
+                            ? "text-green-400"
+                            : "text-gray-400"
                       }`}
                     >
                       {lessonIndex + 1}. {lesson.title}

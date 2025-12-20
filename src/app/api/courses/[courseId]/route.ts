@@ -153,6 +153,7 @@ export async function GET(
 
     let isEnrolled = false;
     let overallProgress = 0;
+    let completedLessonIds: string[] = [];
     if (userId) {
       const enrollment = await Enrollment.findOne({
         student: userId,
@@ -161,8 +162,22 @@ export async function GET(
       if (enrollment) {
         isEnrolled = true;
         overallProgress = enrollment.overallProgress;
+        completedLessonIds = enrollment.completedLessons.map(
+          (cl: { lessonId: mongoose.Types.ObjectId }) => cl.lessonId.toString()
+        );
       }
     }
+
+    // Add isCompleted flag to each lesson
+    const modulesWithCompletionStatus = modulesWithLessons.map(
+      (module: any) => ({
+        ...module,
+        lessons: module.lessons.map((lesson: any) => ({
+          ...lesson,
+          isCompleted: completedLessonIds.includes(lesson._id.toString()),
+        })),
+      })
+    );
 
     return Response.json(
       {
@@ -170,7 +185,7 @@ export async function GET(
         message: "Course fetched successfully",
         data: {
           course: course[0],
-          modules: modulesWithLessons,
+          modules: modulesWithCompletionStatus,
           isEnrolled,
           overallProgress,
         },
