@@ -1,16 +1,9 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
-export interface VideoProgress {
-  watchedDuration?: number;
-  totalDuration?: number;
-  lastWatchedPosition?: number;
-}
-
 export interface CompletedLesson {
   moduleId: Types.ObjectId;
   lessonId: Types.ObjectId;
   lessonType: "video" | "quiz";
-  videoProgress?: VideoProgress;
   completedAt?: Date;
 }
 
@@ -55,11 +48,6 @@ const enrollmentSchema: Schema<Enrollment> = new Schema(
         lessonType: {
           type: String,
           enum: ["video", "quiz"],
-        },
-        videoProgress: {
-          watchedDuration: Number, // uniques seconds watched
-          totalDuration: Number,
-          lastWatchedPosition: Number, // last watch position of user
         },
         completedAt: Date,
       },

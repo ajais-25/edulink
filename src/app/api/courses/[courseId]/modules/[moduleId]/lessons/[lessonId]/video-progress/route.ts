@@ -5,11 +5,13 @@ import Enrollment from "@/models/Enrollment";
 import Lesson from "@/models/Lesson";
 import Module from "@/models/Module";
 import User from "@/models/User";
-import Video from "@/models/Video";
+import Video, { Video as VideoType } from "@/models/Video";
+import VideoProgress from "@/models/VideoProgress";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 
-// video progress tracking
+void Video;
+
 export async function PATCH(
   request: NextRequest,
   {
@@ -69,37 +71,29 @@ export async function PATCH(
       );
     }
 
-    const courseModule = await Module.findById(moduleId);
+    const courseModule = await Module.findOne({ _id: moduleId, courseId });
 
     if (!courseModule) {
       return Response.json(
         {
           success: false,
-          message: "Module not found",
+          message: "Module not found or does not belong to this course",
         },
         { status: 404 }
       );
     }
 
-    const lesson = await Lesson.findById(lessonId).populate("videoId quizId");
+    const lesson = await Lesson.findOne({ _id: lessonId, moduleId }).populate(
+      "videoId"
+    );
 
     if (!lesson) {
       return Response.json(
         {
           success: false,
-          message: "Lesson not found",
+          message: "Lesson not found or does not belong to this module",
         },
         { status: 404 }
-      );
-    }
-
-    if (user.role !== "student") {
-      return Response.json(
-        {
-          success: false,
-          message: "You must be Student",
-        },
-        { status: 403 }
       );
     }
 
@@ -118,13 +112,13 @@ export async function PATCH(
       );
     }
 
-    const lessonVideo = await Video.findById(lesson.videoId);
+    const lessonVideo = lesson.videoId as unknown as VideoType;
 
-    if (!lessonVideo) {
+    if (!lessonVideo || !lessonVideo.duration || lessonVideo.duration <= 0) {
       return Response.json(
         {
           success: false,
-          message: "Video not found",
+          message: "Video not found or has invalid duration",
         },
         { status: 404 }
       );
@@ -179,42 +173,54 @@ export async function PATCH(
       );
     }
 
-    const shouldMarkComplete = watchedDuration === totalDuration;
+    const shouldMarkComplete = watchedDuration >= totalDuration;
 
-    const existingLessonIndex = enrollment.completedLessons.findIndex(
-      (cl) => cl.lessonId.toString() === lessonId
-    );
+    const existingProgress = await VideoProgress.findOne({
+      courseId,
+      moduleId,
+      lessonId,
+      studentId: userId,
+    });
 
-    if (existingLessonIndex !== -1) {
-      enrollment.completedLessons[existingLessonIndex].videoProgress = {
+    if (existingProgress) {
+      if (
+        watchedDuration > existingProgress.watchedDuration ||
+        shouldMarkComplete
+      ) {
+        existingProgress.watchedDuration = watchedDuration;
+        existingProgress.totalDuration = lessonVideo.duration;
+        existingProgress.lastWatchedPosition = lastWatchedPosition;
+        existingProgress.isCompleted =
+          existingProgress.isCompleted || shouldMarkComplete;
+        await existingProgress.save();
+      }
+    } else {
+      await VideoProgress.create({
+        courseId: new mongoose.Types.ObjectId(courseId),
+        moduleId: new mongoose.Types.ObjectId(moduleId),
+        lessonId: new mongoose.Types.ObjectId(lessonId),
+        studentId: new mongoose.Types.ObjectId(userId),
         watchedDuration,
         totalDuration: lessonVideo.duration,
         lastWatchedPosition,
-      };
-
-      if (
-        shouldMarkComplete &&
-        !enrollment.completedLessons[existingLessonIndex].completedAt
-      ) {
-        enrollment.completedLessons[existingLessonIndex].completedAt =
-          new Date();
-      }
-    } else {
-      enrollment.completedLessons.push({
-        moduleId: lesson.moduleId,
-        lessonId: new mongoose.Types.ObjectId(lessonId),
-        lessonType: "video",
-        videoProgress: {
-          watchedDuration,
-          totalDuration: lessonVideo.duration,
-          lastWatchedPosition,
-        },
-        completedAt: shouldMarkComplete ? new Date() : undefined,
+        isCompleted: shouldMarkComplete,
       });
     }
 
-    // recalculate progress if lesson completed
     if (shouldMarkComplete) {
+      const alreadyCompleted = enrollment.completedLessons.some(
+        (cl) => cl.lessonId.toString() === lessonId
+      );
+
+      if (!alreadyCompleted) {
+        enrollment.completedLessons.push({
+          moduleId: new mongoose.Types.ObjectId(moduleId),
+          lessonId: new mongoose.Types.ObjectId(lessonId),
+          lessonType: "video",
+          completedAt: new Date(),
+        });
+      }
+
       const modules = await Module.find({ courseId });
 
       let totalLessons = 0;
@@ -225,10 +231,7 @@ export async function PATCH(
         }
       }
 
-      const completedCount = enrollment.completedLessons.filter(
-        (cl) => cl.completedAt !== undefined
-      ).length;
-
+      const completedCount = enrollment.completedLessons.length;
       enrollment.overallProgress =
         totalLessons > 0
           ? Math.round((completedCount / totalLessons) * 100)
@@ -254,19 +257,19 @@ export async function PATCH(
         data: {
           isCompleted: shouldMarkComplete,
           watchedDuration,
-          totalDuration,
+          totalDuration: lessonVideo.duration,
           lastWatchedPosition,
-          percentageWatched: (watchedDuration / totalDuration) * 100,
+          percentageWatched: (watchedDuration / lessonVideo.duration) * 100,
         },
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error occured while saving progress");
+    console.error("Error occurred while saving progress", error);
     return Response.json(
       {
         success: false,
-        message: "Error occured while saving progress",
+        message: "Error occurred while saving progress",
       },
       { status: 500 }
     );
@@ -312,7 +315,7 @@ export async function GET(
       return Response.json(
         {
           success: false,
-          message: "You need to be an Student for this",
+          message: "You need to be a Student for this",
         },
         { status: 403 }
       );
@@ -332,37 +335,27 @@ export async function GET(
       );
     }
 
-    const courseModule = await Module.findById(moduleId);
+    const courseModule = await Module.findOne({ _id: moduleId, courseId });
 
     if (!courseModule) {
       return Response.json(
         {
           success: false,
-          message: "Module not found",
+          message: "Module not found or does not belong to this course",
         },
         { status: 404 }
       );
     }
 
-    const lesson = await Lesson.findById(lessonId).populate("videoId quizId");
+    const lesson = await Lesson.findOne({ _id: lessonId, moduleId });
 
     if (!lesson) {
       return Response.json(
         {
           success: false,
-          message: "Lesson not found",
+          message: "Lesson not found or does not belong to this module",
         },
         { status: 404 }
-      );
-    }
-
-    if (user.role !== "student") {
-      return Response.json(
-        {
-          success: false,
-          message: "You must be Student",
-        },
-        { status: 403 }
       );
     }
 
@@ -381,11 +374,14 @@ export async function GET(
       );
     }
 
-    const lessonProgress = enrollment.completedLessons.find(
-      (cl) => cl.lessonId.toString() === lessonId
-    );
+    const videoProgress = await VideoProgress.findOne({
+      courseId,
+      moduleId,
+      lessonId,
+      studentId: userId,
+    });
 
-    if (!lessonProgress || !lessonProgress.videoProgress) {
+    if (!videoProgress) {
       return Response.json(
         {
           success: false,
@@ -395,26 +391,26 @@ export async function GET(
       );
     }
 
-    if (lessonProgress.lessonType !== "video") {
-      return Response.json(
-        {
-          success: false,
-          message: "Progress can be fetched only for videos",
-        },
-        { status: 400 }
-      );
-    }
-
     return Response.json(
       {
         success: true,
         message: "Progress fetched successfully",
-        data: lessonProgress,
+        data: {
+          watchedDuration: videoProgress.watchedDuration,
+          totalDuration: videoProgress.totalDuration,
+          lastWatchedPosition: videoProgress.lastWatchedPosition,
+          isCompleted: videoProgress.isCompleted,
+          percentageWatched:
+            videoProgress.totalDuration > 0
+              ? (videoProgress.watchedDuration / videoProgress.totalDuration) *
+                100
+              : 0,
+        },
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Unable to fetch progress");
+    console.error("Unable to fetch progress", error);
     return Response.json(
       {
         success: false,

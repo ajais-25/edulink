@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import api from "@/lib/axios";
-import ReactPlayer from "react-player";
+import VideoPlayer from "@/components/VideoPlayer";
 import QuizSummary from "@/components/QuizSummary";
 import QuizAttemptsList from "@/components/QuizAttemptsList";
 import toast from "react-hot-toast";
@@ -73,7 +73,6 @@ export default function CourseLearnPage() {
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
 
-  // Store initial URL params to avoid re-fetching on every URL change
   const initialParamsRef = useRef({
     moduleId: searchParams.get("moduleId"),
     lessonId: searchParams.get("lessonId"),
@@ -92,7 +91,6 @@ export default function CourseLearnPage() {
           const { moduleId: moduleIdFromUrl, lessonId: lessonIdFromUrl } =
             initialParamsRef.current;
 
-          // Try to find lesson from URL params
           let foundLesson: Lesson | null = null;
           if (moduleIdFromUrl && lessonIdFromUrl) {
             const targetModule = res.data.data.modules.find(
@@ -106,7 +104,6 @@ export default function CourseLearnPage() {
             }
           }
 
-          // Fallback to first lesson if not found in URL
           if (!foundLesson) {
             const firstModule = res.data.data.modules[0];
             if (firstModule && firstModule.lessons.length > 0) {
@@ -168,7 +165,6 @@ export default function CourseLearnPage() {
   const handleLessonSelect = (lesson: Lesson) => {
     setActiveLesson(lesson);
 
-    // Update URL with query params
     const params = new URLSearchParams(searchParams.toString());
     params.set("moduleId", lesson.moduleId);
     params.set("lessonId", lesson._id);
@@ -348,12 +344,38 @@ export default function CourseLearnPage() {
                   } rounded-xl overflow-hidden shadow-2xl relative group`}
                 >
                   {activeLesson.type === "video" && activeLesson.video ? (
-                    <ReactPlayer
-                      src={activeLesson.video.videoUrl}
-                      width="100%"
-                      height="100%"
-                      controls
-                      playing={false}
+                    <VideoPlayer
+                      videoUrl={activeLesson.video.videoUrl}
+                      courseId={courseId as string}
+                      moduleId={activeLesson.moduleId}
+                      lessonId={activeLesson._id}
+                      videoDuration={activeLesson.video.duration}
+                      onComplete={() => {
+                        setModules((prevModules) =>
+                          prevModules.map((mod) => ({
+                            ...mod,
+                            lessons: mod.lessons.map((lesson) =>
+                              lesson._id === activeLesson._id
+                                ? { ...lesson, isCompleted: true }
+                                : lesson
+                            ),
+                          }))
+                        );
+                        setActiveLesson((prev) =>
+                          prev ? { ...prev, isCompleted: true } : prev
+                        );
+                        api
+                          .get(`/api/courses/${courseId}`)
+                          .then((res) => {
+                            if (res.data.success) {
+                              setOverallProgress(
+                                res.data.data.overallProgress || 0
+                              );
+                            }
+                          })
+                          .catch(console.error);
+                        toast.success("Lesson completed! 🎉");
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-900 border border-gray-800 rounded-xl">
