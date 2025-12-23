@@ -1361,7 +1361,7 @@ export default function CourseManagementPage() {
                   placeholder="Enter course description..."
                 />
               ) : (
-                <div className="prose max-w-none text-gray-700">
+                <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
                   {displayCourse.description}
                 </div>
               )}
