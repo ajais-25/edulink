@@ -83,6 +83,11 @@ export function useVideoProgress({
 
         if (res.data.success && res.data.data) {
           const videoProgress = res.data.data;
+          console.log("Fetched video progress:", videoProgress);
+          console.log(
+            "Setting initialPosition to:",
+            videoProgress.lastWatchedPosition || 0
+          );
           setInitialPosition(videoProgress.lastWatchedPosition || 0);
           watchedDurationRef.current = videoProgress.watchedDuration || 0;
           currentPositionRef.current = videoProgress.lastWatchedPosition || 0;

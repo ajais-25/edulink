@@ -24,6 +24,7 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const playerRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
   const [hasSeekToInitial, setHasSeekToInitial] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -52,20 +53,38 @@ export default function VideoPlayer({
   }, []);
 
   useEffect(() => {
+    console.log("Seek effect running:", {
+      canPlay,
+      isLoading,
+      initialPosition,
+      hasSeekToInitial,
+      hasPlayerRef: !!playerRef.current,
+      isCompleted: progress?.isCompleted,
+      videoDuration,
+    });
+
     if (
-      isReady &&
+      canPlay &&
       !isLoading &&
       initialPosition > 0 &&
       !hasSeekToInitial &&
       playerRef.current
     ) {
-      if (!progress?.isCompleted && initialPosition < videoDuration - 5) {
-        playerRef.current.currentTime = initialPosition;
-      }
+      // Seek to initial position (allow even for completed videos so user can resume)
+      console.log("Attempting to seek to:", initialPosition);
+      console.log(
+        "Player ref currentTime before:",
+        playerRef.current.currentTime
+      );
+      playerRef.current.currentTime = initialPosition;
+      console.log(
+        "Player ref currentTime after:",
+        playerRef.current.currentTime
+      );
       setHasSeekToInitial(true);
     }
   }, [
-    isReady,
+    canPlay,
     isLoading,
     initialPosition,
     hasSeekToInitial,
@@ -76,6 +95,7 @@ export default function VideoPlayer({
   useEffect(() => {
     setHasSeekToInitial(false);
     setIsReady(false);
+    setCanPlay(false);
   }, [lessonId]);
 
   const handleReady = useCallback(() => {
@@ -83,11 +103,37 @@ export default function VideoPlayer({
     console.log("Video player ready, URL:", videoUrl);
   }, [videoUrl]);
 
+  const handleCanPlay = useCallback(() => {
+    setCanPlay(true);
+    console.log("Video can play, URL:", videoUrl);
+
+    // Try to seek here as a backup if progress is already loaded
+    if (
+      !isLoading &&
+      initialPosition > 0 &&
+      !hasSeekToInitial &&
+      playerRef.current
+    ) {
+      console.log("Seeking in onCanPlay handler to:", initialPosition);
+      playerRef.current.currentTime = initialPosition;
+      setHasSeekToInitial(true);
+    }
+  }, [videoUrl, isLoading, initialPosition, hasSeekToInitial]);
+
+  const handleLoadedMetadata = useCallback(() => {
+    console.log(
+      "Video metadata loaded, duration:",
+      playerRef.current?.duration
+    );
+  }, []);
+
   const onTimeUpdateHandler = useCallback(() => {
     const player = playerRef.current;
     if (!player) return;
 
     const currentTime = player.currentTime;
+    if (typeof currentTime !== "number" || isNaN(currentTime)) return;
+
     currentPositionRef.current = currentTime;
 
     if (currentTime > watchedDurationRef.current) {
@@ -100,6 +146,8 @@ export default function VideoPlayer({
     if (!player) return;
 
     const duration = player.duration;
+    if (typeof duration !== "number" || isNaN(duration)) return;
+
     console.log("onDurationChange called:", duration);
     totalDurationRef.current = duration;
   }, [totalDurationRef]);
@@ -109,6 +157,8 @@ export default function VideoPlayer({
     if (!player) return;
 
     const currentTime = player.currentTime;
+    if (typeof currentTime !== "number" || isNaN(currentTime)) return;
+
     handleSeek(currentTime);
   }, [handleSeek]);
 
@@ -138,7 +188,10 @@ export default function VideoPlayer({
         width: "100%",
         height: "100%",
         controls: true,
+        preload: "auto",
         onReady: handleReady,
+        onCanPlay: handleCanPlay,
+        onLoadedMetadata: handleLoadedMetadata,
         onTimeUpdate: onTimeUpdateHandler,
         onDurationChange: onDurationChangeHandler,
         onPlay: handlePlay,
