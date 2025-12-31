@@ -107,129 +107,146 @@ export default function Navbar() {
         </div>
 
         {/* Center: Search Bar */}
-        <div className="hidden flex-1 items-center justify-center px-6 lg:flex">
-          <div className="relative w-full max-w-md">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-gray-400" />
+        {user && (
+          <div className="hidden flex-1 items-center justify-center px-6 lg:flex">
+            <div className="relative w-full max-w-md">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearch}
+                className="block w-full rounded-full border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Search for courses..."
+              />
             </div>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearch}
-              className="block w-full rounded-full border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-              placeholder="Search for courses..."
-            />
           </div>
-        </div>
+        )}
 
         {/* Right: User Navigation */}
         <div className="flex items-center gap-4">
-          <Link
-            href="/courses"
-            className={`hidden text-sm font-medium md:block ${
-              pathname === "/courses"
-                ? "text-indigo-600"
-                : "text-gray-700 hover:text-indigo-600"
-            }`}
-          >
-            Browse Courses
-          </Link>
-          <Link
-            href="/my-courses"
-            className={`hidden text-sm font-medium md:block ${
-              pathname?.startsWith("/my-courses")
-                ? "text-indigo-600"
-                : "text-gray-700 hover:text-indigo-600"
-            }`}
-          >
-            My Courses
-          </Link>
-
-          <button
-            type="button"
-            className="rounded-full bg-white p-1 text-gray-500 hover:text-indigo-600 focus:outline-none"
-          >
-            <span className="sr-only">View notifications</span>
-            <Bell className="h-6 w-6" />
-          </button>
-
-          {/* Profile Dropdown */}
-          <div className="relative ml-2" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              type="button"
-              className={`flex rounded-full bg-white text-sm cursor-pointer focus:outline-none ${
-                user?.role === "instructor"
-                  ? "ring-2 ring-indigo-600 ring-offset-2"
-                  : ""
+          {user && (
+            <Link
+              href="/courses"
+              className={`hidden text-sm font-medium md:block ${
+                pathname === "/courses"
+                  ? "text-indigo-600"
+                  : "text-gray-700 hover:text-indigo-600"
               }`}
             >
-              <span className="sr-only">Open user menu</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 overflow-hidden">
-                {user?.profile?.avatar?.url ? (
-                  <img
-                    src={user.profile.avatar.url}
-                    alt={user.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="font-semibold">
-                    {user?.name ? (
-                      user.name.charAt(0).toUpperCase()
+              Browse Courses
+            </Link>
+          )}
+          {user && (
+            <Link
+              href="/my-courses"
+              className={`hidden text-sm font-medium md:block ${
+                pathname?.startsWith("/my-courses")
+                  ? "text-indigo-600"
+                  : "text-gray-700 hover:text-indigo-600"
+              }`}
+            >
+              My Courses
+            </Link>
+          )}
+
+          {user ? (
+            <>
+              <button
+                type="button"
+                className="rounded-full bg-white p-1 text-gray-500 hover:text-indigo-600 focus:outline-none"
+              >
+                <span className="sr-only">View notifications</span>
+                <Bell className="h-6 w-6" />
+              </button>
+
+              {/* Profile Dropdown */}
+              <div className="relative ml-2" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  type="button"
+                  className={`flex rounded-full bg-white text-sm cursor-pointer focus:outline-none ${
+                    user?.role === "instructor"
+                      ? "ring-2 ring-indigo-600 ring-offset-2"
+                      : ""
+                  }`}
+                >
+                  <span className="sr-only">Open user menu</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 overflow-hidden">
+                    {user?.profile?.avatar?.url ? (
+                      <img
+                        src={user.profile.avatar.url}
+                        alt={user.name}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
-                      <User className="h-5 w-5" />
+                      <span className="font-semibold">
+                        {user?.name ? (
+                          user.name.charAt(0).toUpperCase()
+                        ) : (
+                          <User className="h-5 w-5" />
+                        )}
+                      </span>
                     )}
-                  </span>
+                  </div>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="border-b border-gray-100 px-4 py-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        Hi, {user?.name?.split(" ")[0]}
+                      </p>
+                      <p className="truncate text-xs font-medium text-gray-500 capitalize">
+                        {user?.role || "Guest"}
+                      </p>
+                    </div>
+
+                    <div className="py-1">
+                      <Link
+                        href="/profile"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <User className="h-4 w-4" />
+                        Profile
+                      </Link>
+                      <button
+                        onClick={handleChangeRole}
+                        disabled={isChangingRole}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                      >
+                        <RefreshCw
+                          className={`h-4 w-4 ${isChangingRole ? "animate-spin" : ""}`}
+                        />
+                        {isChangingRole ? "Switching..." : "Switch Role"}
+                      </button>
+                    </div>
+
+                    <div className="border-t border-gray-100 py-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
-            </button>
-
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <div className="border-b border-gray-100 px-4 py-3">
-                  <p className="text-sm font-medium text-gray-900">
-                    Hi, {user?.name?.split(" ")[0]}
-                  </p>
-                  <p className="truncate text-xs font-medium text-gray-500 capitalize">
-                    {user?.role || "Guest"}
-                  </p>
-                </div>
-
-                <div className="py-1">
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Link>
-                  <button
-                    onClick={handleChangeRole}
-                    disabled={isChangingRole}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 ${isChangingRole ? "animate-spin" : ""}`}
-                    />
-                    {isChangingRole ? "Switching..." : "Switch Role"}
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-100 py-1">
-                  <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
     </nav>
