@@ -19,7 +19,6 @@ export const metadata: Metadata = {
 };
 
 import ReduxProvider from "@/redux/ReduxProvider";
-import Navbar from "@/components/Navbar";
 
 export default function RootLayout({
   children,
@@ -33,7 +32,6 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <Toaster position="top-center" />
-          <Navbar />
           {children}
         </ReduxProvider>
       </body>
