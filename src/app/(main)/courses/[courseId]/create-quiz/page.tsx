@@ -253,7 +253,7 @@ function CreateQuizContent() {
             <div>
               <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <Award className="w-4 h-4 text-orange-500" />
-                Passing Score (%)
+                Passing Score
               </label>
               <input
                 type="number"
