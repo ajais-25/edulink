@@ -130,7 +130,7 @@ export async function POST(
       const video = await Video.create({
         lessonId: courseLesson._id,
         fileId: imagekit.fileId,
-        videoUrl: imagekit.url,
+        videoUrl: `${imagekit.url}/ik-master.m3u8?tr=sr-240_360_480_720`,
         thumbnail: `${imagekit.url}/ik-thumbnail.jpg?tr=so-0`,
         duration: imagekit.duration,
       });
@@ -170,8 +170,6 @@ export async function POST(
         passingScore,
         questions,
       });
-
-      console.log(lessonQuiz);
 
       if (!lessonQuiz) {
         return Response.json(

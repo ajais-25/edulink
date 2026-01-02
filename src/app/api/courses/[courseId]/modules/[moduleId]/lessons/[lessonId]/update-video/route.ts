@@ -128,7 +128,7 @@ export async function PATCH(
     const oldFileId = lessonVideo.fileId;
 
     lessonVideo.fileId = imagekit.fileId;
-    lessonVideo.videoUrl = imagekit.url;
+    lessonVideo.videoUrl = `${imagekit.url}/ik-master.m3u8?tr=sr-240_360_480_720`;
     lessonVideo.thumbnail = `${imagekit.url}/ik-thumbnail.jpg?tr=so-0`;
     lessonVideo.duration = imagekit.duration;
 
