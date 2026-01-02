@@ -161,10 +161,30 @@ export async function GET(
       });
       if (enrollment) {
         isEnrolled = true;
-        overallProgress = enrollment.overallProgress;
         completedLessonIds = enrollment.completedLessons.map(
           (cl: { lessonId: mongoose.Types.ObjectId }) => cl.lessonId.toString()
         );
+
+        const totalLessons = modulesWithLessons.reduce(
+          (acc: number, module: any) => acc + (module.lessons?.length || 0),
+          0
+        );
+        overallProgress =
+          totalLessons > 0
+            ? Math.round((completedLessonIds.length / totalLessons) * 100)
+            : 0;
+
+        const newStatus = overallProgress === 100 ? "completed" : "active";
+
+        if (
+          enrollment.overallProgress !== overallProgress ||
+          enrollment.status !== newStatus
+        ) {
+          await Enrollment.findByIdAndUpdate(enrollment._id, {
+            overallProgress,
+            status: newStatus,
+          });
+        }
       }
     }
 
@@ -271,8 +291,6 @@ export async function PATCH(
 
     const { title, description, category, level, price, learnings } =
       await request.json();
-
-    console.log(title, description, category, level, price, learnings);
 
     if (!title || !description || !category || !level || !price || !learnings) {
       return Response.json(

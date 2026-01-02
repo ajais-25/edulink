@@ -66,8 +66,6 @@ export async function POST(request: Request) {
         existingUser.email
       );
 
-      // console.log("Token: ", token);
-
       const cookieStore = await cookies();
       cookieStore.set("token", token, {
         httpOnly: true,
