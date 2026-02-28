@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { setServers } from "node:dns/promises";
+setServers(["1.1.1.1", "8.8.8.8"]);
 
 type ConnectionObject = {
   isConnected?: number;
@@ -14,7 +16,7 @@ async function dbConnect(): Promise<void> {
 
   try {
     const db = await mongoose.connect(
-      `${process.env.MONGODB_URI}/${process.env.DB_NAME}` || ""
+      `${process.env.MONGODB_URI}/${process.env.DB_NAME}` || "",
     );
     // console.log(db);
 
