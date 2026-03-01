@@ -7,6 +7,7 @@ const publicRoutes = [
   "/forgot-password",
   "/reset-password",
   "/verify-code",
+  "/webhook",
 ];
 
 export default async function middleware(request: NextRequest) {
@@ -14,7 +15,7 @@ export default async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     const isPublic = publicRoutes.some(
-      (route) => path === route || path.startsWith(route + "/")
+      (route) => path === route || path.startsWith(route + "/"),
     );
 
     const token = request.cookies.get("token")?.value || "";
@@ -31,7 +32,7 @@ export default async function middleware(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Invalid Token" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 }

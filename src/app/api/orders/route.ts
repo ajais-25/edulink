@@ -1,14 +1,13 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
 import dbConnect from "@/lib/dbConnect";
+import { razorpay } from "@/lib/razorpay";
 import Course from "@/models/Course";
 import Enrollment from "@/models/Enrollment";
+import Order from "@/models/Order";
 import User from "@/models/User";
 import { NextRequest } from "next/server";
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ courseId: string }> }
-) {
+export async function POST(request: NextRequest) {
   await dbConnect();
 
   try {
@@ -20,7 +19,7 @@ export async function POST(
           success: false,
           message: "Unauthorized - Invalid or expired token",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -32,7 +31,7 @@ export async function POST(
           success: false,
           message: "Unauthorized user",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -42,11 +41,11 @@ export async function POST(
           success: false,
           message: "You need to be an Student to enroll into course",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
-    const { courseId } = await params;
+    const { courseId } = await request.json();
 
     const course = await Course.findById(courseId);
 
@@ -56,7 +55,7 @@ export async function POST(
           success: false,
           message: "Course not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -66,7 +65,7 @@ export async function POST(
           success: false,
           message: "You cannot enroll to your own course",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,25 +80,40 @@ export async function POST(
           success: false,
           message: "You are already enrolled in this course",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    await Enrollment.create({
-      student: userId,
-      course: courseId,
-      status: "active",
+    // create razorpay order
+    const order = await razorpay.orders.create({
+      amount: Math.round(course.price * 100),
+      currency: "INR",
+      receipt: `receipt-${Date.now()}`,
+      notes: {
+        courseId: courseId.toString(),
+      },
     });
 
-    course.enrollmentCount = course.enrollmentCount + 1;
-    await course.save();
+    const newOrder = await Order.create({
+      userId: user._id,
+      courseId,
+      orderId: order.id,
+      amount: Math.round(course.price * 100),
+      status: "pending",
+    });
 
     return Response.json(
       {
         success: true,
-        message: "Enrolled successfully",
+        data: {
+          orderId: order.id,
+          amount: order.amount,
+          currency: order.currency,
+          dbOrderId: newOrder._id,
+        },
+        message: "Order created",
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error occured while enrolling", error);
@@ -108,7 +122,7 @@ export async function POST(
         success: false,
         message: "Error occured while enrolling",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

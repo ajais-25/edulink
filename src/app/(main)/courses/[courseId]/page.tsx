@@ -118,12 +118,12 @@ export default function CourseManagementPage() {
   const [isEditingCourse, setIsEditingCourse] = useState(false);
   const [editingModule, setEditingModule] = useState<UIModule | null>(null);
   const [editingLesson, setEditingLesson] = useState<EditingLesson | null>(
-    null
+    null,
   );
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
   const [showLessonTypeModal, setShowLessonTypeModal] = useState<string | null>(
-    null
+    null,
   );
   const [showVideoUploadModal, setShowVideoUploadModal] = useState<
     string | null
@@ -169,7 +169,7 @@ export default function CourseManagementPage() {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Request failed with status ${response.status}: ${errorText}`
+          `Request failed with status ${response.status}: ${errorText}`,
         );
       }
 
@@ -224,7 +224,7 @@ export default function CourseManagementPage() {
 
       const response = await api.post(
         `/api/courses/${courseId}/modules/${moduleId}/lessons`,
-        axiosData
+        axiosData,
       );
 
       console.log(response);
@@ -289,7 +289,7 @@ export default function CourseManagementPage() {
 
       await api.patch(
         `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/update-video`,
-        { imagekit: uploadResponse }
+        { imagekit: uploadResponse },
       );
 
       // Close modal and refresh data
@@ -346,7 +346,7 @@ export default function CourseManagementPage() {
   useEffect(() => {
     if (expandedModuleId) {
       setExpandedModules((prev) =>
-        prev.includes(expandedModuleId) ? prev : [...prev, expandedModuleId]
+        prev.includes(expandedModuleId) ? prev : [...prev, expandedModuleId],
       );
       // Optional: scroll to module
     }
@@ -356,7 +356,7 @@ export default function CourseManagementPage() {
     setExpandedModules((prev) =>
       prev.includes(moduleId)
         ? prev.filter((id) => id !== moduleId)
-        : [...prev, moduleId]
+        : [...prev, moduleId],
     );
   };
 
@@ -399,7 +399,7 @@ export default function CourseManagementPage() {
   };
 
   const handleThumbnailUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -418,7 +418,7 @@ export default function CourseManagementPage() {
         publicKey,
         onProgress: (event) => {
           console.log(
-            `Thumbnail upload progress: ${(event.loaded / event.total) * 100}%`
+            `Thumbnail upload progress: ${(event.loaded / event.total) * 100}%`,
           );
         },
       });
@@ -479,14 +479,14 @@ export default function CourseManagementPage() {
           `/api/courses/${courseId}/modules/${editingModule._id}`,
           {
             title: editingModule.title,
-          }
+          },
         );
       } catch (error) {
         console.error("Error updating module:", error);
       }
 
       setModules(
-        modules.map((m) => (m._id === editingModule._id ? editingModule : m))
+        modules.map((m) => (m._id === editingModule._id ? editingModule : m)),
       );
       setEditingModule(null);
     }
@@ -507,7 +507,7 @@ export default function CourseManagementPage() {
           `/api/courses/${courseId}/modules/${editingLesson.moduleId}/lessons/${editingLesson._id}`,
           {
             title: editingLesson.title,
-          }
+          },
         );
       } catch (error) {
         console.error("Error updating lesson:", error);
@@ -519,12 +519,12 @@ export default function CourseManagementPage() {
             return {
               ...m,
               lessons: m.lessons.map((l) =>
-                l._id === editingLesson._id ? editingLesson : l
+                l._id === editingLesson._id ? editingLesson : l,
               ),
             };
           }
           return m;
-        })
+        }),
       );
       setEditingLesson(null);
     }
@@ -569,7 +569,7 @@ export default function CourseManagementPage() {
       setShowVideoUploadModal(showLessonTypeModal);
     } else {
       router.push(
-        `/courses/${courseId}/create-quiz?moduleId=${showLessonTypeModal}`
+        `/courses/${courseId}/create-quiz?moduleId=${showLessonTypeModal}`,
       );
     }
     setShowLessonTypeModal(null);
@@ -601,7 +601,7 @@ export default function CourseManagementPage() {
     const isConfirmed = window.confirm(
       `Are you sure you want to delete this module? It currently has ${lessonCount} lesson${
         lessonCount !== 1 ? "s" : ""
-      }.`
+      }.`,
     );
 
     if (!isConfirmed) return;
@@ -620,14 +620,14 @@ export default function CourseManagementPage() {
     const lesson = module?.lessons.find((l) => l._id === lessonId);
 
     const isConfirmed = window.confirm(
-      `Are you sure you want to delete the lesson "${lesson?.title || "this lesson"}"?`
+      `Are you sure you want to delete the lesson "${lesson?.title || "this lesson"}"?`,
     );
 
     if (!isConfirmed) return;
 
     try {
       await api.delete(
-        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
       );
     } catch (error) {
       console.error("Error deleting lesson:", error);
@@ -641,7 +641,7 @@ export default function CourseManagementPage() {
           return { ...m, lessons: m.lessons.filter((l) => l._id !== lessonId) };
         }
         return m;
-      })
+      }),
     );
   };
 
@@ -708,7 +708,7 @@ export default function CourseManagementPage() {
     if (!course) return;
 
     const updatedLearnings = (course.learnings || []).filter(
-      (_, i) => i !== index
+      (_, i) => i !== index,
     );
 
     // Optimistic update
@@ -741,11 +741,28 @@ export default function CourseManagementPage() {
 
     try {
       setIsEnrolling(true);
-      const response = await api.post(`/api/courses/${courseId}/enroll`);
+      const response = await api.post(`/api/orders`, {
+        courseId,
+      });
 
-      if (response.data.success) {
-        router.push("/my-courses");
-      }
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: response.data.data.amount,
+        currency: response.data.data.currency,
+        name: "Edulink",
+        description: `${course?.title} - ${course?.level} Level`,
+        order_id: response.data.data.orderId,
+        handler: function () {
+          toast.success("Payment successful! You are now enrolled.");
+          router.push("/my-courses");
+        },
+        prefill: {
+          email: user?.email || "",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
     } catch (error: any) {
       console.error("Enrollment error:", error);
       if (
@@ -755,7 +772,7 @@ export default function CourseManagementPage() {
         router.push("/my-courses");
       } else {
         toast.error(
-          error.response?.data?.message || "Failed to enroll in course"
+          error.response?.data?.message || "Failed to enroll in course",
         );
       }
     } finally {
@@ -765,7 +782,7 @@ export default function CourseManagementPage() {
 
   const totalLessons = modules.reduce(
     (acc, module) => acc + module.lessons.length,
-    0
+    0,
   );
   const totalDuration = modules.reduce((total, module) => {
     return (
@@ -838,7 +855,7 @@ export default function CourseManagementPage() {
                     setEditingCourse(
                       editingCourse
                         ? { ...editingCourse, title: e.target.value }
-                        : null
+                        : null,
                     )
                   }
                   className="w-full text-3xl lg:text-4xl font-bold bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -856,7 +873,7 @@ export default function CourseManagementPage() {
                       ? (
                           displayCourse.ratings.reduce(
                             (acc, curr) => acc + curr.rating,
-                            0
+                            0,
                           ) / displayCourse.ratings.length
                         ).toFixed(1)
                       : "0.0"}
@@ -904,7 +921,7 @@ export default function CourseManagementPage() {
                     Created on{" "}
                     {displayCourse.createdAt
                       ? new Date(displayCourse.createdAt).toLocaleDateString(
-                          "en-GB"
+                          "en-GB",
                         )
                       : "Recently"}
                   </span>
@@ -921,7 +938,7 @@ export default function CourseManagementPage() {
                         setEditingCourse(
                           editingCourse
                             ? { ...editingCourse, category: e.target.value }
-                            : null
+                            : null,
                         )
                       }
                       className="px-3 py-1 rounded text-xs font-semibold bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -939,7 +956,7 @@ export default function CourseManagementPage() {
                                   | "intermediate"
                                   | "advanced",
                               }
-                            : null
+                            : null,
                         )
                       }
                       className="px-3 py-1 rounded text-xs font-semibold bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1234,7 +1251,7 @@ export default function CourseManagementPage() {
                                 {lesson.type === "video" && (
                                   <span className="text-xs text-gray-500">
                                     {formatDuration(
-                                      lesson.video?.duration as number
+                                      lesson.video?.duration as number,
                                     ) || "00:00"}
                                   </span>
                                 )}
@@ -1258,7 +1275,7 @@ export default function CourseManagementPage() {
                                       <button
                                         onClick={() =>
                                           router.push(
-                                            `/courses/${courseId}/edit-quiz?moduleId=${module._id}&lessonId=${lesson._id}`
+                                            `/courses/${courseId}/edit-quiz?moduleId=${module._id}&lessonId=${lesson._id}`,
                                           )
                                         }
                                         className="p-1 hover:bg-blue-100 rounded text-blue-600 cursor-pointer"
@@ -1354,7 +1371,7 @@ export default function CourseManagementPage() {
                     setEditingCourse(
                       editingCourse
                         ? { ...editingCourse, description: e.target.value }
-                        : null
+                        : null,
                     )
                   }
                   className="w-full h-40 p-4 text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-y"
@@ -1425,7 +1442,7 @@ export default function CourseManagementPage() {
                                     price:
                                       val === "" ? 0 : parseFloat(val) || 0,
                                   }
-                                : null
+                                : null,
                             );
                           }}
                           className="w-32 text-3xl font-bold text-gray-900 border-b-2 border-blue-500 focus:outline-none"
