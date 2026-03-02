@@ -152,6 +152,19 @@ export default function Navbar() {
             </Link>
           )}
 
+          {user?.role === "student" && (
+            <Link
+              href="/my-orders"
+              className={`hidden text-sm font-medium md:block ${
+                pathname?.startsWith("/my-orders")
+                  ? "text-indigo-600"
+                  : "text-gray-700 hover:text-indigo-600"
+              }`}
+            >
+              My Orders
+            </Link>
+          )}
+
           {user ? (
             <>
               <button

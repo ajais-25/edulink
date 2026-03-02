@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Loader2 } from "lucide-react";
 import api from "@/lib/axios";
 import Link from "next/link";
 import CourseCard, { Course } from "@/components/CourseCard";
@@ -158,10 +158,10 @@ export default function CoursesPage() {
       {/* Course Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="flex flex-col items-center gap-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="text-gray-500 font-medium">Fetching courses...</p>
+          <div className="min-h-[50vh] flex items-center justify-center bg-gray-50 rounded-2xl border border-gray-100">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+              <p className="text-gray-500 font-medium">Loading courses...</p>
             </div>
           </div>
         ) : courses.length > 0 ? (
