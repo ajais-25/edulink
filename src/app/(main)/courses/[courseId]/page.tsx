@@ -759,6 +759,11 @@ export default function CourseManagementPage() {
         prefill: {
           email: user?.email || "",
         },
+        modal: {
+          ondismiss: function () {
+            toast.error("Payment process was cancelled.");
+          },
+        },
       };
 
       const rzp = new (window as any).Razorpay(options);

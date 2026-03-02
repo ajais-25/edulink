@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       console.log("payment", payment);
 
       const order = await Order.findOneAndUpdate(
-        { orderId: payment.order._id },
+        { orderId: payment.order_id, status: "pending" },
         {
           paymentId: payment.id,
           status: "completed",
@@ -83,14 +83,14 @@ export async function POST(request: NextRequest) {
       console.log("payment", payment);
 
       const order = await Order.findOneAndUpdate(
-        { orderId: payment.order._id },
+        { orderId: payment.order_id, status: "pending" },
         {
           paymentId: payment.id,
           status: "failed",
         },
       );
 
-      console.log("Payment failed for order:", payment.order._id);
+      console.log("Payment failed for order:", payment.order_id);
 
       if (order) {
         const user = await User.findById(order.userId).select("-password");
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
             instructor?.name,
             course?.level,
             course?.thumbnail?.url,
-            String(order.amount),
+            String(order.amount / 100),
             "INR",
             order.orderId,
             `${process.env.NEXT_PUBLIC_BASE_URL}/courses/${course?._id}`,
@@ -119,6 +119,8 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    return Response.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error processing webhook:", error);
     return Response.json(
