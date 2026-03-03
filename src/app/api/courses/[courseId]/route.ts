@@ -9,7 +9,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ courseId: string }> }
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   await dbConnect();
 
@@ -22,7 +22,7 @@ export async function GET(
           success: false,
           message: "Unauthorized - Invalid or expired token",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function GET(
           success: false,
           message: "Unauthorized user",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -48,7 +48,7 @@ export async function GET(
           success: false,
           message: "Course not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -162,12 +162,12 @@ export async function GET(
       if (enrollment) {
         isEnrolled = true;
         completedLessonIds = enrollment.completedLessons.map(
-          (cl: { lessonId: mongoose.Types.ObjectId }) => cl.lessonId.toString()
+          (cl: { lessonId: mongoose.Types.ObjectId }) => cl.lessonId.toString(),
         );
 
         const totalLessons = modulesWithLessons.reduce(
           (acc: number, module: any) => acc + (module.lessons?.length || 0),
-          0
+          0,
         );
         overallProgress =
           totalLessons > 0
@@ -188,7 +188,6 @@ export async function GET(
       }
     }
 
-    // Add isCompleted flag to each lesson
     const modulesWithCompletionStatus = modulesWithLessons.map(
       (module: any) => ({
         ...module,
@@ -196,7 +195,7 @@ export async function GET(
           ...lesson,
           isCompleted: completedLessonIds.includes(lesson._id.toString()),
         })),
-      })
+      }),
     );
 
     return Response.json(
@@ -210,7 +209,7 @@ export async function GET(
           overallProgress,
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error fetching course", error);
@@ -219,14 +218,14 @@ export async function GET(
         success: false,
         message: "Error fetching course",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ courseId: string }> }
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   await dbConnect();
 
@@ -239,7 +238,7 @@ export async function PATCH(
           success: false,
           message: "Unauthorized - Invalid or expired token",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -251,7 +250,7 @@ export async function PATCH(
           success: false,
           message: "Unauthorized user",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -261,7 +260,7 @@ export async function PATCH(
           success: false,
           message: "You need to be an Instructor to update a course",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -275,7 +274,7 @@ export async function PATCH(
           success: false,
           message: "Course not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -285,7 +284,7 @@ export async function PATCH(
           success: false,
           message: "You are not the instructor of this course",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -298,7 +297,7 @@ export async function PATCH(
           success: false,
           message: "All fields are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -312,7 +311,7 @@ export async function PATCH(
           success: false,
           message: "Invalid level provided",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -327,7 +326,7 @@ export async function PATCH(
         price,
         learnings,
       },
-      { new: true }
+      { new: true },
     );
 
     return Response.json(
@@ -336,7 +335,7 @@ export async function PATCH(
         message: "Course updated successfully",
         data: updatedCourse,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("An error occured while creating course", error);
@@ -345,7 +344,7 @@ export async function PATCH(
         success: false,
         message: "An error occured while creating course",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

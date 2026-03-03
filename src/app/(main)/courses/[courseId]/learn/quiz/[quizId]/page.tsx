@@ -22,7 +22,7 @@ export default function QuizPage() {
     const fetchQuizDetails = async () => {
       if (!courseId || !moduleId || !lessonId || !attemptId) {
         setError(
-          "Missing required parameters: courseId, moduleId, lessonId, or attemptId"
+          "Missing required parameters: courseId, moduleId, lessonId, or attemptId",
         );
         setLoading(false);
         return;
@@ -30,9 +30,9 @@ export default function QuizPage() {
 
       try {
         setLoading(true);
-        // Using existing API as requested
+
         const res = await api.get(
-          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
+          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
         );
 
         if (res.data.success) {
@@ -49,7 +49,7 @@ export default function QuizPage() {
         console.error("Error fetching quiz:", err);
         setError(
           err.response?.data?.message ||
-            "An error occurred while loading the quiz"
+            "An error occurred while loading the quiz",
         );
       } finally {
         setLoading(false);
@@ -90,7 +90,7 @@ export default function QuizPage() {
 
   const handleExit = () => {
     router.push(
-      `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`
+      `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`,
     );
   };
 

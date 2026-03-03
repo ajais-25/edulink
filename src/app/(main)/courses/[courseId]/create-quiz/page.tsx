@@ -20,7 +20,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 
 interface Question {
-  _id: number; // Internal unique ID for React state management
+  _id: number;
   questionNo: number;
   question: string;
   options: string[];
@@ -53,7 +53,6 @@ function CreateQuizContent() {
 
   useEffect(() => {
     if (!moduleId) {
-      // Redirect back to course page if no moduleId is provided
       router.push(`/courses/${courseId}`);
     }
   }, [moduleId, courseId, router]);
@@ -78,7 +77,7 @@ function CreateQuizContent() {
     setQuizData({
       ...quizData,
       questions: quizData.questions.map((q) =>
-        q._id === id ? { ...q, [field]: value } : q
+        q._id === id ? { ...q, [field]: value } : q,
       ),
     });
   };
@@ -86,7 +85,7 @@ function CreateQuizContent() {
   const updateQuestionOption = (
     id: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setQuizData({
       ...quizData,
@@ -115,7 +114,7 @@ function CreateQuizContent() {
 
     try {
       setIsSaving(true);
-      // Prepare questions for API: assign proper sequential questionNo and remove internal _id
+
       const questionsForApi = quizData.questions.map((q, index) => ({
         questionNo: index + 1,
         question: q.question,
@@ -133,7 +132,6 @@ function CreateQuizContent() {
         questions: questionsForApi,
       });
 
-      // Redirect back to course page with expanded module
       router.push(`/courses/${courseId}?expandedModule=${moduleId}`);
     } catch (error) {
       console.error("Error saving quiz", error);
@@ -144,7 +142,7 @@ function CreateQuizContent() {
   };
 
   if (!moduleId) {
-    return null; // Or a loading spinner while redirecting
+    return null;
   }
 
   return (
@@ -345,7 +343,7 @@ function CreateQuizContent() {
                             updateQuestion(
                               question._id,
                               "correctOption",
-                              oIndex
+                              oIndex,
                             )
                           }
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
@@ -373,7 +371,7 @@ function CreateQuizContent() {
                             updateQuestionOption(
                               question._id,
                               oIndex,
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder={`Option ${String.fromCharCode(65 + oIndex)}`}
@@ -396,7 +394,7 @@ function CreateQuizContent() {
                           updateQuestion(
                             question._id,
                             "explanation",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Explain why this answer is correct..."
@@ -415,7 +413,7 @@ function CreateQuizContent() {
                             updateQuestion(
                               question._id,
                               "points",
-                              e.target.valueAsNumber || 0
+                              e.target.valueAsNumber || 0,
                             )
                           }
                           className="w-full pl-4 pr-8 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-semibold text-gray-900"

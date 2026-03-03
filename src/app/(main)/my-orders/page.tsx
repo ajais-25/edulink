@@ -11,7 +11,6 @@ import {
   Clock3,
   Loader2,
   Package,
-  Receipt,
   XCircle,
 } from "lucide-react";
 import type { Course } from "@/components/CourseCard";

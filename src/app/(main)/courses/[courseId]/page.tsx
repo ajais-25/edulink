@@ -348,7 +348,6 @@ export default function CourseManagementPage() {
       setExpandedModules((prev) =>
         prev.includes(expandedModuleId) ? prev : [...prev, expandedModuleId],
       );
-      // Optional: scroll to module
     }
   }, [expandedModuleId]);
 
@@ -827,6 +826,14 @@ export default function CourseManagementPage() {
     return `${secs}s`;
   };
 
+  const handleBackNavigation = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/courses");
+  };
+
   if (loading || !course) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -844,7 +851,7 @@ export default function CourseManagementPage() {
       <div className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12 lg:py-16">
           <button
-            onClick={() => router.push("/courses")}
+            onClick={handleBackNavigation}
             className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />

@@ -44,7 +44,7 @@ function VerifyCodeContent() {
 
   const handleKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -87,7 +87,7 @@ function VerifyCodeContent() {
         `/api/auth/verify-code?email=${encodeURIComponent(email || "")}`,
         {
           code: verificationCode,
-        }
+        },
       );
 
       setSuccess(response.data.message);
@@ -98,7 +98,8 @@ function VerifyCodeContent() {
       }, 2000);
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "An error occurred during verification"
+        error.response?.data?.message ||
+          "An error occurred during verification",
       );
     } finally {
       setIsLoading(false);
@@ -173,7 +174,6 @@ function VerifyCodeContent() {
               type="button"
               className="font-medium text-indigo-600 hover:text-indigo-500"
               onClick={() => {
-                // Could implement resend functionality here
                 setError("Please sign up again to receive a new code");
               }}
             >
