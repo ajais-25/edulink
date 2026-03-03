@@ -65,7 +65,7 @@ export default function QuizResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
 
   useEffect(() => {
@@ -80,14 +80,14 @@ export default function QuizResultPage() {
         setLoading(true);
 
         const attemptRes = await api.get(
-          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz-result/${attemptId}`
+          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz-result/${attemptId}`,
         );
 
         if (attemptRes.data.success) {
           setAttempt(attemptRes.data.data);
 
           const lessonRes = await api.get(
-            `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
+            `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
           );
 
           if (lessonRes.data.success && lessonRes.data.data.lesson.quizId) {
@@ -95,14 +95,14 @@ export default function QuizResultPage() {
           }
         } else {
           setError(
-            attemptRes.data.message || "Failed to fetch attempt details"
+            attemptRes.data.message || "Failed to fetch attempt details",
           );
         }
       } catch (err: any) {
         console.error("Error fetching attempt details:", err);
         setError(
           err.response?.data?.message ||
-            "An error occurred while loading the attempt details"
+            "An error occurred while loading the attempt details",
         );
       } finally {
         setLoading(false);
@@ -126,7 +126,7 @@ export default function QuizResultPage() {
 
   const handleGoBack = () => {
     router.push(
-      `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`
+      `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`,
     );
   };
 
@@ -318,73 +318,87 @@ export default function QuizResultPage() {
                 </button>
 
                 {/* Expanded Content */}
-                {isExpanded && question && (
-                  <div className="px-4 pb-4 border-t border-gray-700">
-                    <div className="pt-4 space-y-3">
-                      {question.options.map((option, optIndex) => {
-                        const isSelected = response.selectedOption === optIndex;
-                        const isCorrect = response.correctOption === optIndex;
+                <div
+                  className={`grid transition-all duration-300 ease-in-out ${
+                    isExpanded
+                      ? "grid-rows-[1fr] opacity-100"
+                      : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    {question && (
+                      <div className="px-4 pb-4 border-t border-gray-700">
+                        <div className="pt-4 space-y-3">
+                          {question.options.map((option, optIndex) => {
+                            const isSelected =
+                              response.selectedOption === optIndex;
+                            const isCorrect =
+                              response.correctOption === optIndex;
 
-                        let bgClass = "bg-gray-700/30";
-                        let borderClass = "border-gray-600";
+                            let bgClass = "bg-gray-700/30";
+                            let borderClass = "border-gray-600";
 
-                        if (isCorrect) {
-                          bgClass = "bg-green-900/30";
-                          borderClass = "border-green-500";
-                        } else if (isSelected && !response.isCorrect) {
-                          bgClass = "bg-red-900/30";
-                          borderClass = "border-red-500";
-                        }
+                            if (isCorrect) {
+                              bgClass = "bg-green-900/30";
+                              borderClass = "border-green-500";
+                            } else if (isSelected && !response.isCorrect) {
+                              bgClass = "bg-red-900/30";
+                              borderClass = "border-red-500";
+                            }
 
-                        return (
-                          <div
-                            key={optIndex}
-                            className={`p-3 rounded-lg border ${bgClass} ${borderClass} flex items-center gap-3`}
-                          >
-                            <span
-                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                isCorrect
-                                  ? "bg-green-500 text-white"
-                                  : isSelected
-                                    ? "bg-red-500 text-white"
-                                    : "bg-gray-600 text-gray-300"
-                              }`}
-                            >
-                              {String.fromCharCode(65 + optIndex)}
-                            </span>
-                            <span
-                              className={`${
-                                isCorrect
-                                  ? "text-green-300"
-                                  : isSelected && !response.isCorrect
-                                    ? "text-red-300"
-                                    : "text-gray-300"
-                              }`}
-                            >
-                              {option}
-                            </span>
-                            {isCorrect && (
-                              <CheckCircle className="w-4 h-4 text-green-400 ml-auto" />
-                            )}
-                            {isSelected && !isCorrect && (
-                              <XCircle className="w-4 h-4 text-red-400 ml-auto" />
-                            )}
+                            return (
+                              <div
+                                key={optIndex}
+                                className={`p-3 rounded-lg border ${bgClass} ${borderClass} flex items-center gap-3`}
+                              >
+                                <span
+                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                    isCorrect
+                                      ? "bg-green-500 text-white"
+                                      : isSelected
+                                        ? "bg-red-500 text-white"
+                                        : "bg-gray-600 text-gray-300"
+                                  }`}
+                                >
+                                  {String.fromCharCode(65 + optIndex)}
+                                </span>
+                                <span
+                                  className={`${
+                                    isCorrect
+                                      ? "text-green-300"
+                                      : isSelected && !response.isCorrect
+                                        ? "text-red-300"
+                                        : "text-gray-300"
+                                  }`}
+                                >
+                                  {option}
+                                </span>
+                                {isCorrect && (
+                                  <CheckCircle className="w-4 h-4 text-green-400 ml-auto" />
+                                )}
+                                {isSelected && !isCorrect && (
+                                  <XCircle className="w-4 h-4 text-red-400 ml-auto" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Explanation */}
+                        {response.explanation && (
+                          <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+                            <p className="text-sm text-gray-400 mb-1">
+                              Explanation:
+                            </p>
+                            <p className="text-blue-200">
+                              {response.explanation}
+                            </p>
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Explanation */}
-                    {response.explanation && (
-                      <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-                        <p className="text-sm text-gray-400 mb-1">
-                          Explanation:
-                        </p>
-                        <p className="text-blue-200">{response.explanation}</p>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
@@ -402,7 +416,7 @@ export default function QuizResultPage() {
             <button
               onClick={() => {
                 router.push(
-                  `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`
+                  `/courses/${courseId}/learn?moduleId=${moduleId}&lessonId=${lessonId}`,
                 );
               }}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-medium transition-colors cursor-pointer"

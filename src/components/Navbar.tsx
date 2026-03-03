@@ -91,8 +91,7 @@ export default function Navbar() {
     }
   };
 
-  // Hide Navbar on learn pages
-  if (pathname?.includes("/learn/")) {
+  if (!pathname || pathname.includes("/learn")) {
     return null;
   }
 

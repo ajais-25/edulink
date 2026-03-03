@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, Menu, X } from "lucide-react";
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
 
@@ -61,17 +61,18 @@ export default function QuizInterface({
   const savedState = getInitialState();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(
-    savedState?.currentQuestionIndex ?? 0
+    savedState?.currentQuestionIndex ?? 0,
   );
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
   >(savedState?.selectedAnswers ?? {});
   const [showResults, setShowResults] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(
-    savedState?.timeRemaining ?? quiz.timeLimit * 60
+    savedState?.timeRemaining ?? quiz.timeLimit * 60,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
+  const [isQuestionPanelOpen, setIsQuestionPanelOpen] = useState(false);
   const hasSubmittedRef = useRef(false);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
@@ -140,7 +141,7 @@ export default function QuizInterface({
 
       const res = await api.post(
         `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz-result?attemptId=${attemptId}`,
-        { responses }
+        { responses },
       );
 
       if (res.data.success) {
@@ -237,9 +238,31 @@ export default function QuizInterface({
     }
   };
 
+  const handleJumpToQuestion = (index: number) => {
+    setCurrentQuestionIndex(index);
+    setIsQuestionPanelOpen(false);
+  };
+
+  const answeredCount = Object.keys(selectedAnswers).length;
+
+  const getQuestionBadgeClasses = (index: number) => {
+    const isCurrent = index === currentQuestionIndex;
+    const isAnswered = selectedAnswers[index] !== undefined;
+
+    if (isCurrent) {
+      return "border-white/50 bg-white/10 text-white";
+    }
+
+    if (isAnswered) {
+      return "border-blue-500/40 bg-blue-500/10 text-blue-200";
+    }
+
+    return "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200";
+  };
+
   if (isSubmitting) {
     return (
-      <div className="w-full h-full min-h-screen flex items-center justify-center p-6 bg-gray-900 text-white">
+      <div className="w-full min-h-screen flex items-center justify-center p-6 bg-gray-900 text-white">
         <div className="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center border border-gray-700 shadow-xl">
           <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">
@@ -255,7 +278,7 @@ export default function QuizInterface({
 
   if (showResults) {
     return (
-      <div className="w-full h-full flex items-center justify-center p-6 bg-gray-900 text-white">
+      <div className="w-full min-h-screen flex items-center justify-center p-6 bg-gray-900 text-white">
         <div className="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center border border-gray-700 shadow-xl">
           <h2 className="text-2xl font-bold text-white mb-4">
             Quiz Completed!
@@ -275,110 +298,221 @@ export default function QuizInterface({
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gray-900 text-white">
-      <div className="w-full max-w-4xl mx-auto p-4 lg:p-8 flex-1 flex flex-col justify-center">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-lg font-bold text-white mb-1">
-              Question {currentQuestionIndex + 1}
-            </h2>
-            <p className="text-sm text-gray-400">of {totalQuestions}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${getTimerColor()}`}
-            >
-              <Clock className="w-4 h-4" />
-              <span>{formatTime(timeRemaining)}</span>
-            </div>
-            {onExit && (
-              <button
-                onClick={handleSubmitWithConfirmation}
-                className="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium text-sm transition-colors cursor-pointer shadow-md"
-              >
-                Submit
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-800 h-2 rounded-full mb-8 overflow-hidden">
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="max-w-6xl mx-auto px-4 py-6 lg:py-10">
+        {/* Mobile top bar */}
+        <div className="flex items-center justify-between gap-3 mb-4 lg:hidden">
+          <button
+            onClick={() => setIsQuestionPanelOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm font-medium hover:border-gray-600 transition-colors cursor-pointer"
+          >
+            <Menu className="w-4 h-4" />
+            Questions
+          </button>
           <div
-            className="bg-blue-500 h-full transition-all duration-300"
-            style={{
-              width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`,
-            }}
-          />
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium ${getTimerColor()}`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>{formatTime(timeRemaining)}</span>
+          </div>
         </div>
 
-        {/* Question Card */}
-        <div className="flex-1 overflow-y-auto mb-8">
-          <h3 className="text-xl lg:text-3xl font-medium text-white mb-8 leading-relaxed">
-            {currentQuestion.question}
-          </h3>
+        <div className="grid lg:grid-cols-[280px,1fr] gap-6">
+          {/* Sidebar */}
+          <aside className="hidden lg:flex flex-col gap-4 bg-gray-900/60 border border-gray-800 rounded-2xl p-4 sticky top-6 h-fit">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-400">
+                Answered {answeredCount}/{totalQuestions}
+              </div>
+              <div
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold ${getTimerColor()}`}
+              >
+                <Clock className="w-4 h-4" />
+                <span>{formatTime(timeRemaining)}</span>
+              </div>
+            </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {currentQuestion.options.map((option, index) => {
-              const isSelected =
-                selectedAnswers[currentQuestionIndex] === index;
-              return (
+            <div className="grid grid-cols-5 gap-2">
+              {quiz.questions.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => handleOptionSelect(index)}
-                  disabled={isTimerExpired}
-                  className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isSelected
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-gray-700 bg-gray-800 hover:border-gray-600 hover:bg-gray-750"
-                  }`}
+                  onClick={() => handleJumpToQuestion(index)}
+                  className={`h-10 rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${getQuestionBadgeClasses(index)}`}
                 >
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      isSelected
-                        ? "border-blue-500 bg-blue-500"
-                        : "border-gray-500 group-hover:border-gray-400"
-                    }`}
-                  >
-                    {isSelected && (
-                      <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-base lg:text-lg ${
-                      isSelected ? "text-white" : "text-gray-300"
-                    }`}
-                  >
-                    {option}
-                  </span>
+                  {index + 1}
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        {/* Footer Navigation */}
-        <div className="mt-auto pt-6 border-t border-gray-800 flex items-center justify-between">
-          <button
-            onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0}
-            className="px-6 py-2.5 rounded-lg font-medium text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          >
-            Previous
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={
-              selectedAnswers[currentQuestionIndex] === undefined ||
-              isTimerExpired
-            }
-            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isLastQuestion ? "Finish Quiz" : "Next Question"}
-          </button>
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-white/70" />
+                Current
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-blue-400" />
+                Answered
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-gray-500" />
+                Unanswered
+              </div>
+            </div>
+          </aside>
+
+          {/* Main content */}
+          <main className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 lg:p-8 flex flex-col min-h-[70vh]">
+            <div className="flex items-start justify-between gap-3 mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-white mb-1">
+                  Question {currentQuestionIndex + 1}
+                </h2>
+                <p className="text-sm text-gray-400">of {totalQuestions}</p>
+              </div>
+              {onExit && (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSubmitWithConfirmation}
+                    disabled={answeredCount < totalQuestions}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium text-sm transition-colors cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600"
+                  >
+                    Submit
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="w-full bg-gray-800 h-2 rounded-full mb-8 overflow-hidden">
+              <div
+                className="bg-blue-500 h-full transition-all duration-300"
+                style={{
+                  width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`,
+                }}
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto mb-8">
+              <h3 className="text-xl lg:text-3xl font-medium text-white mb-6 leading-relaxed">
+                {currentQuestion.question}
+              </h3>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {currentQuestion.options.map((option, index) => {
+                  const isSelected =
+                    selectedAnswers[currentQuestionIndex] === index;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleOptionSelect(index)}
+                      disabled={isTimerExpired}
+                      className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-500/10"
+                          : "border-gray-700 bg-gray-800 hover:border-gray-600 hover:bg-gray-750"
+                      }`}
+                    >
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-500"
+                            : "border-gray-500 group-hover:border-gray-400"
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                        )}
+                      </div>
+                      <span
+                        className={`text-base lg:text-lg ${
+                          isSelected ? "text-white" : "text-gray-300"
+                        }`}
+                      >
+                        {option}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-auto pt-6 border-t border-gray-800 flex items-center justify-between">
+              <button
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0}
+                className="px-6 py-2.5 rounded-lg font-medium text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="lg:hidden">
+                  <button
+                    onClick={() => setIsQuestionPanelOpen(true)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-700 text-gray-200 hover:border-gray-500 transition-colors cursor-pointer"
+                  >
+                    Review
+                  </button>
+                </div>
+                <button
+                  onClick={handleNext}
+                  disabled={
+                    selectedAnswers[currentQuestionIndex] === undefined ||
+                    isTimerExpired
+                  }
+                  className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isLastQuestion ? "Finish Quiz" : "Next Question"}
+                </button>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
+
+      {/* Mobile question panel */}
+      {isQuestionPanelOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden bg-black/60">
+          <div className="absolute inset-y-0 left-0 w-80 max-w-[90%] bg-gray-900 border-r border-gray-800 p-4 shadow-2xl overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm text-gray-300">
+                Answered {answeredCount}/{totalQuestions}
+              </div>
+              <button
+                onClick={() => setIsQuestionPanelOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {quiz.questions.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleJumpToQuestion(index)}
+                  className={`h-10 rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${getQuestionBadgeClasses(index)}`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-white/70" />
+                Current
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-blue-400" />
+                Answered
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-gray-500" />
+                Unanswered
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

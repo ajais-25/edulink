@@ -146,6 +146,7 @@ export default function CourseManagementPage() {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
+  const [isNavigatingToLearn, setIsNavigatingToLearn] = useState(false);
   const [priceInput, setPriceInput] = useState<string>("");
 
   // Learnings state
@@ -1514,12 +1515,21 @@ export default function CourseManagementPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() =>
-                            router.push(`/courses/${courseId}/learn`)
-                          }
-                          className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setIsNavigatingToLearn(true);
+                            router.push(`/courses/${courseId}/learn`);
+                          }}
+                          disabled={isNavigatingToLearn}
+                          className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                          Continue Learning
+                          {isNavigatingToLearn ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Loading Course...
+                            </>
+                          ) : (
+                            "Continue Learning"
+                          )}
                         </button>
                       </>
                     ) : (
