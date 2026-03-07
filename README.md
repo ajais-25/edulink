@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EduLink
 
-## Getting Started
+EduLink is a full-stack e-learning platform for creating, selling, and completing structured online courses.
 
-First, run the development server:
+Instructors can build and publish module-based courses with video and quiz lessons, while students can enroll, learn at their own pace, and track progress across lessons. The platform is powered by Next.js App Router, MongoDB (Mongoose), Razorpay, ImageKit, and Resend.
+
+## Highlights
+
+- JWT auth with email verification and password reset.
+- Role-based experience: `student` and `instructor`.
+- Course creation with modules and lessons (`video` or `quiz`).
+- Secure media uploads via ImageKit auth endpoint.
+- Razorpay order + webhook-based enrollment.
+- Learning mode with video progress tracking and quiz attempts/results.
+- React Email templates for auth/payment notifications.
+
+## Tech Stack
+
+- Framework: Next.js 15 (App Router), React 19, TypeScript
+- Styling: Tailwind CSS 4
+- State: Redux Toolkit + Redux Persist
+- Database: MongoDB + Mongoose
+- Auth: JWT + HTTP-only cookie
+- Payments: Razorpay
+- Media: ImageKit
+- Emails: Resend + React Email
+
+## User Roles
+
+- `student`
+  - Browse and enroll in published courses
+  - Consume lessons, take quizzes, track progress
+  - View order history and rate enrolled courses
+- `instructor`
+  - Create/update/publish courses
+  - Manage modules, video lessons, and quiz lessons
+  - Monitor course structure and enrollment-facing content
+
+Users can switch roles from the navbar profile menu (`/api/users/change-role`).
+
+## Email Notifications
+
+Emails are sent via Resend using React Email templates.
+
+- Verification email on sign-up
+- Forgot password email with reset link
+- Password reset confirmation email
+- Course enrollment success email (webhook success path)
+- Payment failed email (webhook failure path)
+
+## Environment Variables
+
+Create a `.env.local` file in the project root.
+
+```bash
+# Database
+MONGODB_URI=
+DB_NAME=
+
+# Auth
+JWT_SECRET=
+
+# URLs
+DOMAIN_URL=http://localhost:3000
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# Email (Resend)
+RESEND_API_KEY=
+SUPPORT_EMAIL=
+
+# ImageKit
+IMAGEKIT_PRIVATE_KEY=
+IMAGEKIT_PUBLIC_KEY=
+
+# Razorpay
+NEXT_PUBLIC_RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+```
+
+Notes:
+
+- `IMAGEKIT_PUBLIC_KEY` is returned by `/api/imagekit-auth` to client uploads.
+- Razorpay amounts are stored/processed in paise (`INR`).
+- `DOMAIN_URL` is used in verification/reset links and email footer links.
+
+## Local Development
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Start development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Lint
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+```
 
-## Learn More
+### 4. Production build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## NPM Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `npm run dev`: start dev server with Turbopack
+- `npm run build`: production build with Turbopack
+- `npm start`: start production server
+- `npm run lint`: run ESLint
 
-## Deploy on Vercel
+## Core Flows
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Student Flow
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Sign up and verify email using OTP.
+2. Sign in and browse `/courses`.
+3. Enroll via Razorpay checkout from course detail page.
+4. Payment webhook marks order status and creates enrollment.
+5. Learn via video/quiz lessons, with progress persisted server-side.
+
+### Instructor Flow
+
+1. Switch role to `instructor`.
+2. Create a course with thumbnail upload.
+3. Add modules.
+4. Add video lessons or quiz lessons.
+5. Edit/publish course and manage content updates.
