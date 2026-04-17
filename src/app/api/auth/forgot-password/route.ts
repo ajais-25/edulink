@@ -52,7 +52,17 @@ export async function POST(request: Request) {
 
     await passwordReset.save();
 
-    await sendForgotPasswordEmail(email, resetLink, "15 minutes");
+    const forgotPasswordEmailResult = await sendForgotPasswordEmail(
+      email,
+      resetLink,
+      "15 minutes",
+    );
+
+    if (!forgotPasswordEmailResult.success) {
+      console.warn(
+        `Forgot-password token created but email failed for ${email}: ${forgotPasswordEmailResult.message}`,
+      );
+    }
 
     return Response.json(
       {

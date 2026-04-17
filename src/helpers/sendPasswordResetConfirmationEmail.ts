@@ -1,13 +1,15 @@
 import { PasswordResetConfirmationEmail } from "@/emails/PasswordResetConfirmationEmail";
-import { resend } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 
 export async function sendPasswordResetConfirmationEmail(
   name: string,
   email: string,
   resetDate: string,
-  supportEmail: string
+  supportEmail: string,
 ) {
   try {
+    const resend = getResendClient();
+
     const { data, error } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: email,

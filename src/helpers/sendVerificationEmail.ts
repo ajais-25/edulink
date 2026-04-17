@@ -1,13 +1,15 @@
-import { resend } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 import { VerificationEmail } from "@/emails/VerificationEmail";
 
 export async function sendVerificationEmail(
   name: string,
   email: string,
   verifyUrl: string,
-  verifyCode: string
+  verifyCode: string,
 ) {
   try {
+    const resend = getResendClient();
+
     const { data, error } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: email,

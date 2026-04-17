@@ -1,4 +1,4 @@
-import { resend } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 import CourseEnrolledEmail from "@/emails/CourseEnrolledEmail";
 
 export async function sendCourseEnrolledEmail(
@@ -12,6 +12,8 @@ export async function sendCourseEnrolledEmail(
   courseLink: string,
 ) {
   try {
+    const resend = getResendClient();
+
     const { data, error } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: userEmail,

@@ -13,14 +13,14 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [emailFallbackMessage, setEmailFallbackMessage] = useState("");
 
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setEmailFallbackMessage("");
 
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
@@ -41,15 +41,20 @@ export default function SignUp() {
         password,
       });
 
-      setSuccess(response.data.message);
+      const { message, emailSent } = response.data;
 
-      // Redirect to verify-code page after successful registration
-      setTimeout(() => {
+      if (emailSent) {
+        toast.success(message);
+
+        // Redirect to verify-code page after successful registration
         router.push(`/verify-code?email=${encodeURIComponent(email)}`);
-      }, 1500);
+      } else {
+        // Keep this visible until user retries or leaves the page.
+        setEmailFallbackMessage(message);
+      }
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "An error occurred during sign up"
+        error.response?.data?.message || "An error occurred during sign up",
       );
     } finally {
       setIsLoading(false);
@@ -74,9 +79,9 @@ export default function SignUp() {
           </div>
         )}
 
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-            {success}
+        {emailFallbackMessage && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md text-sm">
+            {emailFallbackMessage}
           </div>
         )}
 

@@ -55,12 +55,26 @@ export async function POST(request: Request) {
 
     const verifyUrl = `${process.env.DOMAIN_URL!}/verify-code?email=${email}`;
 
-    await sendVerificationEmail(name, email, verifyUrl, verifyCode);
+    const verificationEmailResult = await sendVerificationEmail(
+      name,
+      email,
+      verifyUrl,
+      verifyCode,
+    );
+
+    if (!verificationEmailResult.success) {
+      console.warn(
+        `Sign-up succeeded but verification email failed for ${email}: ${verificationEmailResult.message}`,
+      );
+    }
 
     return Response.json(
       {
         success: true,
-        message: "User registered successfully",
+        message: verificationEmailResult.success
+          ? "User registered successfully"
+          : "User registered successfully, but verification email could not be sent. Please try requesting a new code.",
+        emailSent: verificationEmailResult.success,
       },
       { status: 201 },
     );

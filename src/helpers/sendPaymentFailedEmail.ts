@@ -1,4 +1,4 @@
-import { resend } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 import PaymentFailedEmail from "@/emails/PaymentFailedEmail";
 
 export async function sendPaymentFailedEmail(
@@ -15,6 +15,8 @@ export async function sendPaymentFailedEmail(
   retryLink: string,
 ) {
   try {
+    const resend = getResendClient();
+
     const { data, error } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: userEmail,
