@@ -14,7 +14,7 @@ export async function PATCH(
     params,
   }: {
     params: Promise<{ courseId: string; moduleId: string; lessonId: string }>;
-  }
+  },
 ) {
   await dbConnect();
 
@@ -27,7 +27,7 @@ export async function PATCH(
           success: false,
           message: "Unauthorized - Invalid or expired token",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -39,7 +39,7 @@ export async function PATCH(
           success: false,
           message: "Unauthorized user",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function PATCH(
           success: false,
           message: "You need to be an Instructor to update a lesson",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -63,7 +63,7 @@ export async function PATCH(
           success: false,
           message: "Course not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -75,7 +75,7 @@ export async function PATCH(
           success: false,
           message: "Module not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -87,7 +87,7 @@ export async function PATCH(
           success: false,
           message: "Lesson not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -97,7 +97,7 @@ export async function PATCH(
           success: false,
           message: "You are not the instructor of this course",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -109,7 +109,7 @@ export async function PATCH(
           success: false,
           message: "Lesson not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -121,7 +121,7 @@ export async function PATCH(
           success: false,
           message: "Invalid file upload data",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -134,14 +134,14 @@ export async function PATCH(
 
     await lessonVideo.save();
 
-    await deleteFile(oldFileId);
+    // await deleteFile(oldFileId);
 
     return Response.json(
       {
         success: true,
         message: "Video updated successfully",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error occured while updating lesson");
@@ -150,7 +150,7 @@ export async function PATCH(
         success: false,
         message: "Error occured while updating lesson",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

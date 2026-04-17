@@ -66,7 +66,7 @@ export default function CreateCoursePage() {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Request failed with status ${response.status}: ${errorText}`
+          `Request failed with status ${response.status}: ${errorText}`,
         );
       }
 
@@ -82,7 +82,7 @@ export default function CreateCoursePage() {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -148,6 +148,7 @@ export default function CreateCoursePage() {
         publicKey,
         file: formData.thumbnailFile,
         fileName: formData.thumbnailFile.name,
+        folder: "/EduLink/course-thumbnails/",
         onProgress: (event) => {
           setProgress((event.loaded / event.total) * 100);
         },
@@ -376,7 +377,7 @@ export default function CreateCoursePage() {
                           setFormData((prev) => ({
                             ...prev,
                             learnings: prev.learnings.filter(
-                              (_, i) => i !== index
+                              (_, i) => i !== index,
                             ),
                           }));
                         }}

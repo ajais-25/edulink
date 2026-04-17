@@ -210,6 +210,7 @@ export default function CourseManagementPage() {
         publicKey,
         file,
         fileName: file.name,
+        folder: "/EduLink/course-videos/",
         onProgress: (event) => {
           setProgress((event.loaded / event.total) * 100);
         },
@@ -282,6 +283,7 @@ export default function CourseManagementPage() {
         publicKey,
         file,
         fileName: file.name,
+        folder: "/EduLink/course-videos/",
         onProgress: (event) => {
           setUpdateVideoProgress((event.loaded / event.total) * 100);
         },
@@ -412,6 +414,7 @@ export default function CourseManagementPage() {
       const uploadResponse = await upload({
         file,
         fileName: file.name,
+        folder: "/EduLink/course-thumbnails/",
         expire,
         token,
         signature,
@@ -915,7 +918,7 @@ export default function CourseManagementPage() {
                 <div className="flex items-center gap-3">
                   <img
                     src={
-                      displayCourse.instructor.profile.avatar.url ||
+                      displayCourse.instructor?.profile?.avatar.url ||
                       "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
                     }
                     alt="Instructor"
