@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
           success: false,
           message: "Unauthorized - Invalid or expired token",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,20 +28,20 @@ export async function GET(request: NextRequest) {
           success: false,
           message: "Unauthorized user",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const { token, expire, signature } = getUploadAuthParams({
-      privateKey: process.env.IMAGEKIT_PRIVATE_KEY as string,
-      publicKey: process.env.IMAGEKIT_PUBLIC_KEY as string,
+      privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
+      publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
     });
 
     return Response.json({
       token,
       expire,
       signature,
-      publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+      publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
     });
   } catch (error) {
     return Response.json(
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         success: false,
         message: "ImageKit auth failed",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

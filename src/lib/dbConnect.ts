@@ -16,7 +16,7 @@ async function dbConnect(): Promise<void> {
 
   try {
     const db = await mongoose.connect(
-      `${process.env.MONGODB_URI}/${process.env.DB_NAME}` || "",
+      `${process.env.MONGODB_URI!}/${process.env.DB_NAME!}` || "",
     );
     // console.log(db);
 

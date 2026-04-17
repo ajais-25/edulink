@@ -8,9 +8,9 @@ import { cookies } from "next/headers";
 const generateAuthToken = (
   _id: Types.ObjectId,
   name: string,
-  email: string
+  email: string,
 ): string => {
-  const secret = process.env.JWT_SECRET;
+  const secret = process.env.JWT_SECRET!;
 
   if (!secret) {
     throw new Error("JWT_SECRET is not configured");
@@ -39,13 +39,13 @@ export async function POST(request: Request) {
           },
           {
             status: 400,
-          }
+          },
         );
       }
 
       const isPasswordCorrect = await bcrypt.compare(
         password,
-        existingUser.password
+        existingUser.password,
       );
 
       if (!isPasswordCorrect) {
@@ -56,14 +56,14 @@ export async function POST(request: Request) {
           },
           {
             status: 400,
-          }
+          },
         );
       }
 
       const token = generateAuthToken(
         existingUser._id as Types.ObjectId,
         existingUser.name,
-        existingUser.email
+        existingUser.email,
       );
 
       const cookieStore = await cookies();
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         },
         {
           status: 200,
-        }
+        },
       );
     } else {
       return Response.json(
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         },
         {
           status: 400,
-        }
+        },
       );
     }
   } catch (error) {
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
           success: false,
           message: "Please provide a vaild email",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
           success: true,
           message: "If the email exists, a reset link has been sent",
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     const expiresAt = new Date(Date.now() + 1000 * 60 * 15);
 
-    const resetLink = `${process.env.DOMAIN_URL}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.DOMAIN_URL!}/reset-password?token=${resetToken}`;
 
     const passwordReset = new PasswordReset({
       userId: user._id,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         success: true,
         message: "If the email exists, a reset link has been sent",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Forgot password error");
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         success: false,
         message: "An error occured. Please try again later",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

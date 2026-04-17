@@ -11,8 +11,8 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({
   companyName = "EduLink",
-  privacyUrl = `${process.env.DOMAIN_URL}/privacy`,
-  termsUrl = `${process.env.DOMAIN_URL}/terms`,
+  privacyUrl = `${process.env.DOMAIN_URL!}/privacy`,
+  termsUrl = `${process.env.DOMAIN_URL!}/terms`,
 }) => {
   return (
     <Section style={layout.footer}>

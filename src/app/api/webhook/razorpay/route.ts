@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
             instructor?.name,
             course?.level,
             course?.thumbnail?.url,
-            `${process.env.NEXT_PUBLIC_BASE_URL}/courses/${course?._id}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL!}/courses/${course?._id}`,
           );
         }
       }
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
             String(order.amount / 100),
             "INR",
             order.orderId,
-            `${process.env.NEXT_PUBLIC_BASE_URL}/courses/${course?._id}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL!}/courses/${course?._id}`,
           );
         }
       }

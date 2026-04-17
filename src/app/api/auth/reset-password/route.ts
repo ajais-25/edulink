@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "Token and new password are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "Invalid token",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
           password: hashedPassword,
         },
       },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "User not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       user.name,
       user.email,
       resetDate,
-      process.env.SUPPORT_EMAIL || ""
+      process.env.SUPPORT_EMAIL! || "",
     );
 
     return Response.json(
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Password reset succesful",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("An error occured. Please try after sometime");
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         success: false,
         message: "An error occured. Please try again later",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

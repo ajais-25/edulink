@@ -10,13 +10,13 @@ interface DecodedToken {
 export function getDataFromToken(request: NextRequest): string | null {
   try {
     const token = request.cookies.get("token")?.value || "";
-    const secret = process.env.JWT_SECRET;
+    const secret = process.env.JWT_SECRET!;
 
     if (!token || !secret) {
       return null;
     }
 
-    const decodedToken = jwt.verify(token, secret) as JwtPayload & DecodedToken;
+    const decodedToken = jwt.verify(token, secret) as DecodedToken;
 
     if (!decodedToken._id) {
       return null;

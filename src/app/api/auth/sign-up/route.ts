@@ -20,7 +20,7 @@ export async function POST(request: Request) {
             success: false,
             message: "User already exists with this email",
           },
-          { status: 400 }
+          { status: 400 },
         );
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       await newUser.save();
     }
 
-    const verifyUrl = `${process.env.DOMAIN_URL}/verify-code?email=${email}`;
+    const verifyUrl = `${process.env.DOMAIN_URL!}/verify-code?email=${email}`;
 
     await sendVerificationEmail(name, email, verifyUrl, verifyCode);
 
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         success: true,
         message: "User registered successfully",
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error registering user", error);
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

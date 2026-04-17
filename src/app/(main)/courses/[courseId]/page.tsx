@@ -749,7 +749,7 @@ export default function CourseManagementPage() {
       });
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
         amount: response.data.data.amount,
         currency: response.data.data.currency,
         name: "Edulink",
