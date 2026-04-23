@@ -16,7 +16,7 @@
     "@reduxjs/toolkit": "^2.11.1",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
-    "imagekit": "^6.0.0",
+    "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.546.0",
     "mongoose": "^8.18.2",

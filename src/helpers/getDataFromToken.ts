@@ -1,10 +1,8 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 
 interface DecodedToken {
   _id: string;
-  name: string;
-  email: string;
 }
 
 export function getDataFromToken(request: NextRequest): string | null {

@@ -5,18 +5,14 @@ import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import { cookies } from "next/headers";
 
-const generateAuthToken = (
-  _id: Types.ObjectId,
-  name: string,
-  email: string,
-): string => {
+const generateAuthToken = (_id: Types.ObjectId): string => {
   const secret = process.env.JWT_SECRET!;
 
   if (!secret) {
     throw new Error("JWT_SECRET is not configured");
   }
 
-  return jwt.sign({ _id: _id.toString(), name, email }, secret, {
+  return jwt.sign({ _id: _id.toString() }, secret, {
     expiresIn: "7d",
   });
 };
@@ -60,18 +56,14 @@ export async function POST(request: Request) {
         );
       }
 
-      const token = generateAuthToken(
-        existingUser._id as Types.ObjectId,
-        existingUser.name,
-        existingUser.email,
-      );
+      const token = generateAuthToken(existingUser._id as Types.ObjectId);
 
       const cookieStore = await cookies();
       cookieStore.set("token", token, {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: 60 * 60 * 24 * 7, // 7 days
       });
 
       return Response.json(

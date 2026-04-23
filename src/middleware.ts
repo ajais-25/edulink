@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
 const publicRoutes = [
   "/",
@@ -11,29 +12,44 @@ const publicRoutes = [
 ];
 
 export default async function middleware(request: NextRequest) {
+  const secret = process.env.JWT_SECRET;
+  const encodedSecret = secret ? new TextEncoder().encode(secret) : null;
+  const path = request.nextUrl.pathname;
+  const token = request.cookies.get("token")?.value || "";
+
+  const isPublic = publicRoutes.some(
+    (route) => path === route || path.startsWith(route + "/"),
+  );
+
   try {
-    const path = request.nextUrl.pathname;
-
-    const isPublic = publicRoutes.some(
-      (route) => path === route || path.startsWith(route + "/"),
-    );
-
-    const token = request.cookies.get("token")?.value || "";
-
-    if (isPublic && token) {
-      return NextResponse.redirect(new URL("/courses", request.nextUrl));
+    if (!isPublic && (!token || !encodedSecret)) {
+      return NextResponse.redirect(new URL("/sign-in", request.nextUrl));
     }
 
-    if (!isPublic && !token) {
-      return NextResponse.redirect(new URL("/sign-in", request.nextUrl));
+    if (token && encodedSecret) {
+      await jwtVerify(token, encodedSecret);
+
+      if (isPublic) {
+        return NextResponse.redirect(new URL("/courses", request.nextUrl));
+      }
     }
 
     return NextResponse.next();
   } catch (error) {
-    return NextResponse.json(
-      { success: false, message: "Invalid Token" },
-      { status: 401 },
+    const redirectPath = isPublic ? path : "/sign-in";
+    const response = NextResponse.redirect(
+      new URL(redirectPath, request.nextUrl),
     );
+
+    response.cookies.set("token", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 0,
+      path: "/",
+    });
+
+    return response;
   }
 }
 
