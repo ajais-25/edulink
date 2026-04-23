@@ -29,6 +29,8 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
+  const description = course.description?.trim() || "No description available.";
+
   return (
     <Link href={`/courses/${course._id}`} className="group">
       <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 h-full flex flex-col">
@@ -45,8 +47,15 @@ export default function CourseCard({ course }: CourseCardProps) {
             {course.title}
           </h3>
 
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-grow">
-            {course.description}
+          <p
+            className="text-sm text-gray-600 mb-4 flex-grow leading-6 whitespace-pre-line break-words overflow-hidden"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+            }}
+          >
+            {description}
           </p>
 
           <div className="flex items-center gap-2 mb-4">
@@ -81,7 +90,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     ? (
                         course.ratings.reduce(
                           (acc, curr) => acc + curr.rating,
-                          0
+                          0,
                         ) / course.ratings.length
                       ).toFixed(1)
                     : "0.0"}
