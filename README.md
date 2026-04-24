@@ -50,32 +50,33 @@ Emails are sent via Resend using React Email templates.
 
 ## Environment Variables
 
-Create a `.env.local` file in the project root.
+Create a `.env` file in the project root.
 
 ```bash
 # Database
-MONGODB_URI=
-DB_NAME=
+MONGODB_URI=your_mongodb_connection_string
+DB_NAME=your_db_name
 
 # Auth
-JWT_SECRET=
+JWT_SECRET=your_jwt_secret_key
 
 # URLs
 DOMAIN_URL=http://localhost:3000
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
 # Email (Resend)
-RESEND_API_KEY=
-SUPPORT_EMAIL=
+RESEND_API_KEY=your_resend_api_key
+SUPPORT_EMAIL=your_support_email
 
 # ImageKit
-IMAGEKIT_PRIVATE_KEY=
-IMAGEKIT_PUBLIC_KEY=
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
 
 # Razorpay
-NEXT_PUBLIC_RAZORPAY_KEY_ID=
-RAZORPAY_KEY_SECRET=
-RAZORPAY_WEBHOOK_SECRET=
+NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 ```
 
 Notes:
