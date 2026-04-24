@@ -8,25 +8,31 @@ const publicRoutes = [
   "/forgot-password",
   "/reset-password",
   "/verify-code",
-  "/webhook",
 ];
 
 export default async function middleware(request: NextRequest) {
   const secret = process.env.JWT_SECRET;
-  const encodedSecret = secret ? new TextEncoder().encode(secret) : null;
+  if (!secret) throw new Error("JWT_SECRET is missing");
+
+  const encodedSecret = new TextEncoder().encode(secret);
   const path = request.nextUrl.pathname;
-  const token = request.cookies.get("token")?.value || "";
+  const token = request.cookies.get("token")?.value;
+
+  const nextPath = `${path}${request.nextUrl.search}`;
+  const signInUrl = new URL("/sign-in", request.nextUrl);
+  signInUrl.searchParams.set("next", nextPath);
 
   const isPublic = publicRoutes.some(
-    (route) => path === route || path.startsWith(route + "/"),
+    (route) =>
+      path === route || (route !== "/" && path.startsWith(route + "/")),
   );
 
   try {
-    if (!isPublic && (!token || !encodedSecret)) {
-      return NextResponse.redirect(new URL("/sign-in", request.nextUrl));
+    if (!isPublic && !token) {
+      return NextResponse.redirect(signInUrl);
     }
 
-    if (token && encodedSecret) {
+    if (token) {
       await jwtVerify(token, encodedSecret);
 
       if (isPublic) {
@@ -35,11 +41,8 @@ export default async function middleware(request: NextRequest) {
     }
 
     return NextResponse.next();
-  } catch (error) {
-    const redirectPath = isPublic ? path : "/sign-in";
-    const response = NextResponse.redirect(
-      new URL(redirectPath, request.nextUrl),
-    );
+  } catch {
+    const response = NextResponse.redirect(signInUrl);
 
     response.cookies.set("token", "", {
       httpOnly: true,
@@ -64,5 +67,6 @@ export const config = {
     "/courses/:path*",
     "/my-courses/:path*",
     "/profile/:path*",
+    "/my-orders/:path*",
   ],
 };

@@ -3,7 +3,7 @@
 import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/slices/user";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
@@ -15,6 +15,7 @@ export default function SignIn() {
 
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,12 +27,15 @@ export default function SignIn() {
         password,
       });
 
-      router.push("/courses");
+      const next = searchParams.get("next");
+      const redirectTo = next && next.startsWith("/") ? next : "/courses";
+
+      router.push(redirectTo);
 
       dispatch(setUser(response.data.data.user));
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "An error occurred during sign in"
+        error.response?.data?.message || "An error occurred during sign in",
       );
     } finally {
       setIsLoading(false);
