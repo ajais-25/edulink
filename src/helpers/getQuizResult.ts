@@ -9,7 +9,7 @@ interface UserResponse {
 export function getQuizResult(
   userResponses: UserResponse[],
   answers: Question[],
-  passingScore: number
+  passingScore: number,
 ) {
   let totalPoints: number = 0;
   let score: number = 0;
@@ -21,7 +21,7 @@ export function getQuizResult(
   let evaluatedResponses: Response[] = [];
   for (const userResponse of userResponses) {
     const answer = answers.find(
-      (a) => a.questionNo === userResponse.questionId
+      (a) => a.questionNo === userResponse.questionId,
     );
 
     if (answer && userResponse.selectedOption === answer.correctOption) {
@@ -40,10 +40,9 @@ export function getQuizResult(
     });
   }
 
-  let passed: boolean = false;
-  if (score >= passingScore) {
-    passed = true;
-  }
+  const normalizedPassingScore = Math.min(Math.max(passingScore, 0), 100);
+  const scorePercentage = totalPoints > 0 ? (score / totalPoints) * 100 : 0;
+  const passed = scorePercentage >= normalizedPassingScore;
 
   return {
     score,

@@ -62,7 +62,7 @@ function EditQuizContent() {
       try {
         setIsLoading(true);
         const res = await api.get(
-          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
+          `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
         );
 
         if (res.data.success) {
@@ -118,7 +118,7 @@ function EditQuizContent() {
     setQuizData({
       ...quizData,
       questions: quizData.questions.map((q) =>
-        q._id === id ? { ...q, [field]: value } : q
+        q._id === id ? { ...q, [field]: value } : q,
       ),
     });
   };
@@ -126,7 +126,7 @@ function EditQuizContent() {
   const updateQuestionOption = (
     id: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setQuizData({
       ...quizData,
@@ -168,7 +168,7 @@ function EditQuizContent() {
       // Update lesson title
       await api.patch(
         `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
-        { title: quizData.title || "Quiz" }
+        { title: quizData.title || "Quiz" },
       );
 
       // Update quiz data
@@ -178,7 +178,7 @@ function EditQuizContent() {
           timeLimit: quizData.timeLimit,
           passingScore: quizData.passingScore,
           questions: questionsForApi,
-        }
+        },
       );
 
       router.push(`/courses/${courseId}?expandedModule=${moduleId}`);
@@ -308,7 +308,7 @@ function EditQuizContent() {
             <div>
               <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <Award className="w-4 h-4 text-orange-500" />
-                Passing Score
+                Passing Score (in %)
               </label>
               <input
                 type="number"
@@ -400,7 +400,7 @@ function EditQuizContent() {
                             updateQuestion(
                               question._id,
                               "correctOption",
-                              oIndex
+                              oIndex,
                             )
                           }
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
@@ -428,7 +428,7 @@ function EditQuizContent() {
                             updateQuestionOption(
                               question._id,
                               oIndex,
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder={`Option ${String.fromCharCode(65 + oIndex)}`}
@@ -451,7 +451,7 @@ function EditQuizContent() {
                           updateQuestion(
                             question._id,
                             "explanation",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Explain why this answer is correct..."
@@ -470,7 +470,7 @@ function EditQuizContent() {
                             updateQuestion(
                               question._id,
                               "points",
-                              e.target.valueAsNumber || 0
+                              e.target.valueAsNumber || 0,
                             )
                           }
                           className="w-full pl-4 pr-8 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-semibold text-gray-900"

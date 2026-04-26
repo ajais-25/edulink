@@ -50,13 +50,13 @@ export default function QuizSummary({
     try {
       setIsStarting(true);
       const res = await api.post(
-        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/start-quiz`
+        `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/start-quiz`,
       );
 
       if (res.data.success) {
         const attemptId = res.data.data.attemptId;
         router.push(
-          `/courses/${courseId}/learn/quiz/${quiz._id}?moduleId=${moduleId}&lessonId=${lessonId}&attemptId=${attemptId}`
+          `/courses/${courseId}/learn/quiz/${quiz._id}?moduleId=${moduleId}&lessonId=${lessonId}&attemptId=${attemptId}`,
         );
       }
     } catch (error: any) {
@@ -94,7 +94,7 @@ export default function QuizSummary({
           <div className="bg-gray-700/50 p-3 rounded-lg">
             <div className="flex items-center justify-center gap-2 text-green-400 mb-1">
               <CheckCircle className="w-3.5 h-3.5" />
-              <span className="font-bold text-sm">{quiz.passingScore}</span>
+              <span className="font-bold text-sm">{quiz.passingScore} %</span>
             </div>
             <p className="text-[10px] text-gray-500 uppercase tracking-wider">
               Passing Score
