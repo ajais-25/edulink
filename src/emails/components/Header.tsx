@@ -8,8 +8,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  logoUrl = "https://via.placeholder.com/150x50/4F46E5/ffffff?text=YourLogo",
-  logoAlt = "Company Logo",
+  logoUrl = "https://ik.imagekit.io/xtz3yyavr/EduLink/logo.png", // Update this with your actual domain when deploying
+  logoAlt = "EduLink Logo",
 }) => {
   return (
     <Section style={headerStyle}>

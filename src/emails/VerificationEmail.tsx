@@ -145,7 +145,7 @@ export const VerificationEmail = ({
             >
               Need help? Contact our support team at{" "}
               <Link href="mailto:support@yourapp.com" style={components.link}>
-                support@yourapp.com
+                support@edulink.com
               </Link>
             </Text>
           </Section>

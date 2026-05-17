@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Search, Bell, User, LogOut, RefreshCw } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useState, useRef, useEffect } from "react";
@@ -101,6 +102,13 @@ export default function Navbar() {
         {/* Left: Branding */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="EduLink Logo"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
             <span className="text-2xl font-bold text-indigo-600">EduLink</span>
           </Link>
         </div>

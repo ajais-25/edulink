@@ -134,7 +134,8 @@ export async function PATCH(
 
     await lessonVideo.save();
 
-    // await deleteFile(oldFileId);
+    // TODO: Have to uncommit this
+    await deleteFile(oldFileId);
 
     return Response.json(
       {
